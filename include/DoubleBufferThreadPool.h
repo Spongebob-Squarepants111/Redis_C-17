@@ -9,82 +9,64 @@
 #include <atomic>
 #include <type_traits>
 #include <random>
-#include <optional>
-#include <shared_mutex>
 
 class DoubleBufferThreadPool {
 public:
     explicit DoubleBufferThreadPool(size_t threads = std::thread::hardware_concurrency());
     ~DoubleBufferThreadPool();
-    
-    DoubleBufferThreadPool(const DoubleBufferThreadPool&) = delete;
-    DoubleBufferThreadPool& operator=(const DoubleBufferThreadPool&) = delete;
-    DoubleBufferThreadPool(DoubleBufferThreadPool&&) noexcept = default;
-    DoubleBufferThreadPool& operator=(DoubleBufferThreadPool&&) noexcept = default;
 
     template<class F, class... Args>
     auto enqueue(F&& f, Args&&... args)
-        -> std::future<std::invoke_result_t<F, Args...>>;
+        -> std::future<typename std::invoke_result_t<F, Args...>>;
 
-    [[nodiscard]] size_t pending_tasks() const noexcept;
+    size_t pending_tasks() const noexcept;
     void shutdown();
 
 private:
     struct Buffer {
         std::queue<std::function<void()>> tasks;
-        mutable std::shared_mutex mutex;
-        std::condition_variable_any cv;
+        mutable std::mutex mutex;
+        std::condition_variable cv;
     };
 
     // 双缓冲核心组件
-    static inline constexpr size_t BUFFER_COUNT = 2;
-    std::array<Buffer, BUFFER_COUNT> buffers_;
+    Buffer buffers_[2];
     std::atomic<size_t> write_index_{0};  // 当前写入缓冲索引
     std::atomic<bool> stop_{false};
     std::vector<std::thread> workers_;
     
     // 动态切换参数
-    static inline constexpr size_t INITIAL_THRESHOLD = 1000;
+    static constexpr size_t INITIAL_THRESHOLD = 1000;
     std::atomic<size_t> switch_threshold_{INITIAL_THRESHOLD};
 
     void worker_thread();
     void switch_buffers() noexcept;  // 声明切换缓冲区的函数
 };
 
+
 template <class F, class... Args>
 auto DoubleBufferThreadPool::enqueue(F&& f, Args&&... args)
-    -> std::future<std::invoke_result_t<F, Args...>> {
-    using return_type = std::invoke_result_t<F, Args...>;
+    -> std::future<typename std::invoke_result_t<F, Args...>> {
+    using return_type = typename std::invoke_result_t<F, Args...>;
 
-    auto task = std::make_shared<std::packaged_task<return_type()>>(
-        [f = std::forward<F>(f), ...args = std::forward<Args>(args)]() mutable {
-            return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
-        }
-    );
-    
+    auto bound = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
+    auto task = std::make_shared<std::packaged_task<return_type()>>(bound);
     std::future<return_type> res = task->get_future();
 
-    if (const size_t idx = write_index_.load(); !stop_) {
-        {
-            std::unique_lock lock(buffers_[idx].mutex);
-            buffers_[idx].tasks.emplace([task]() { (*task)(); });
-        }
-        
-        // 检查任务数量，决定是否切换缓冲区
-        if (buffers_[idx].tasks.size() >= switch_threshold_.load()) {
-            switch_buffers();
-        }
-        
-        // 使用if constexpr优化通知逻辑
-        if constexpr (BUFFER_COUNT == 2) {
-            buffers_[0].cv.notify_one();
-            buffers_[1].cv.notify_one();
-        } else {
-            buffers_[idx].cv.notify_one();
-        }
-        
-        return res;
+    int idx = write_index_.load();  // 获取当前写入的缓冲区
+    {
+        std::lock_guard<std::mutex> lk(buffers_[idx].mutex);
+        if (stop_) throw std::runtime_error("enqueue on stopped pool");
+        buffers_[idx].tasks.emplace([task]() { (*task)(); });
     }
     
-    throw std::runtime_error("enqueue on stopped pool");
+    // 检查任务数量，决定是否切换缓冲区
+    if (buffers_[idx].tasks.size() >= switch_threshold_.load()) {
+        switch_buffers();
+    }
+    
+    // buffers_[idx].cv.notify_one();  // 唤醒一个工作线程
+    buffers_[0].cv.notify_one();
+    buffers_[1].cv.notify_one();
+    return res;
 }

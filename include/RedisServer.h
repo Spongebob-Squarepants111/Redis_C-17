@@ -3,10 +3,6 @@
 #include <memory>
 #include <vector>
 #include <mutex>
-#include <shared_mutex>
-#include <string_view>
-#include <optional>
-#include <chrono>
 #include "DoubleBufferThreadPool.h"
 #include "CommandHandler.h"
 
@@ -33,17 +29,15 @@ private:
     };
 
 private:
-    // 使用inline常量替代static constexpr
-    static inline constexpr size_t MAX_EVENTS = 1024;
-    static inline constexpr size_t INITIAL_BUFFER_SIZE = 4096*8;
-    
     const int port_;
     int server_fd_;
     int epfd;
+    static constexpr size_t MAX_EVENTS = 1024;
+    static constexpr size_t INITIAL_BUFFER_SIZE = 4096*8;
     
     // 连接管理
     std::unordered_map<int, std::shared_ptr<ClientContext>> clients;
-    mutable std::shared_mutex clients_mutex;  // 使用shared_mutex替代mutex
+    std::mutex clients_mutex;
     
     // 线程池
     DoubleBufferThreadPool readThreadPool;
@@ -52,22 +46,17 @@ private:
     // 命令处理器
     CommandHandler handler_;
 
-    // 方法声明
+    // 新增的方法
     void add_client(int client_fd);
     void remove_client(int client_fd);
-    std::optional<std::shared_ptr<ClientContext>> get_client(int client_fd) const;  // 返回optional
+    std::shared_ptr<ClientContext> get_client(int client_fd);
     void handle_client_data(std::shared_ptr<ClientContext> client);
     bool try_parse_command(std::shared_ptr<ClientContext> client);
-    void reset_client_buffers(std::shared_ptr<ClientContext> client) noexcept;  // 添加noexcept
+    void reset_client_buffers(std::shared_ptr<ClientContext> client);
 
 public:
     explicit RedisServer(int port);
     ~RedisServer();
-    RedisServer(const RedisServer&) = delete;  // 禁用拷贝
-    RedisServer& operator=(const RedisServer&) = delete;
-    RedisServer(RedisServer&&) noexcept = default;  // 启用移动
-    RedisServer& operator=(RedisServer&&) noexcept = default;
-    
     void run();
 
 private:
