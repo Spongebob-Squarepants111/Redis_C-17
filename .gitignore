@@ -1,0 +1,30 @@
+# 编译输出目录
+build/
+bin/
+obj/
+
+# 编译生成的文件
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+
+# 临时文件
+*.log
+*.tmp
+
+# 编辑器相关
+.vscode/
+.idea/
+*.user
+*.suo
+
+# CMake 生成文件
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# MacOS系统文件
+.DS_Store
