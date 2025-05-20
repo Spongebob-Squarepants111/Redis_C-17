@@ -6,24 +6,134 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <list>
+#include <chrono>
+#include <fstream>
+#include <zlib.h>
+#include <shared_mutex>
+#include <thread>
+#include <atomic>
 
 class DataStore {
 public:
-    explicit DataStore(size_t shard_count = 128*2);  // 默认16个分片
+    struct Options {
+        size_t shard_count;
+        size_t cache_size;
+        bool enable_compression;
+        std::string persist_path;
+        std::chrono::seconds sync_interval;
+
+        Options()
+            : cache_size(10000)
+            , enable_compression(true)
+            , persist_path("./data/")
+            , sync_interval(60)
+        {
+            unsigned int cpu_cores = std::thread::hardware_concurrency();
+            // hardware_concurrency 可能返回 0，表示未知，这时默认用256
+            if (cpu_cores == 0) {
+                shard_count = 256;
+            } else {
+                shard_count = std::max<size_t>(2 * cpu_cores, 1);
+            }
+        }
+    };
+
+    explicit DataStore(const Options& options = Options{});
+    ~DataStore();
+
     void set(const std::string& key, const std::string& value);
     std::optional<std::string> get(const std::string& key);
+    bool del(const std::string& key);
+    void flush(); // 强制持久化
 
 private:
+    // LRU缓存实现
+    class LRUCache {
+        struct CacheEntry {
+            std::string key;
+            std::string value;
+            std::chrono::steady_clock::time_point last_access;
+            
+            CacheEntry(std::string k, std::string v)
+                : key(std::move(k)), value(std::move(v))
+                , last_access(std::chrono::steady_clock::now()) {}
+        };
+
+    public:
+        explicit LRUCache(size_t capacity) : capacity_(capacity) {}
+
+        void put(const std::string& key, const std::string& value) {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto it = cache_map_.find(key);
+            if (it != cache_map_.end()) {
+                cache_list_.erase(it->second);
+            }
+            cache_list_.push_front(CacheEntry(key, value));
+            cache_map_[key] = cache_list_.begin();
+            if (cache_map_.size() > capacity_) {
+                auto last = cache_list_.back();
+                cache_map_.erase(last.key);
+                cache_list_.pop_back();
+            }
+        }
+
+        std::optional<std::string> get(const std::string& key) {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto it = cache_map_.find(key);
+            if (it == cache_map_.end()) {
+                return std::nullopt;
+            }
+            auto list_it = it->second;
+            cache_list_.splice(cache_list_.begin(), cache_list_, list_it);
+            return list_it->value;
+        }
+
+        void remove(const std::string& key) {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto it = cache_map_.find(key);
+            if (it != cache_map_.end()) {
+                cache_list_.erase(it->second);
+                cache_map_.erase(it);
+            }
+        }
+
+    private:
+        size_t capacity_;
+        std::list<CacheEntry> cache_list_;
+        std::unordered_map<std::string, typename std::list<CacheEntry>::iterator> cache_map_;
+        mutable std::mutex mutex_;
+    };
+
     // 分片结构
     struct Shard {
         std::unordered_map<std::string, std::string> store;
-        mutable std::mutex mutex;
+        mutable std::shared_mutex mutex;
+        std::string persist_file;
     };
 
-    // 获取key对应的分片
+    // 压缩功能
+    static std::string compress(const std::string& data);
+    static std::string decompress(const std::string& data);
+
+    // 持久化功能
+    void persist_shard(size_t shard_index);
+    void load_shard(size_t shard_index);
+    void start_sync_thread();
+    void sync_routine();
+
+    // 一致性哈希
     size_t get_shard_index(const std::string& key) const;
-    
-    // 分片存储
+    uint32_t hash(const std::string& key) const;
+
     std::vector<std::unique_ptr<Shard>> shards_;
     const size_t shard_count_;
+    LRUCache cache_;
+    const bool enable_compression_;
+    const std::string persist_path_;
+    std::chrono::seconds sync_interval_;
+    
+    // 同步线程
+    std::thread sync_thread_;
+    std::atomic<bool> should_stop_{false};
 };

@@ -2,6 +2,7 @@
 #include "RESPParser.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -38,12 +39,63 @@ void RedisServer::run() {
         return;
     }
 
-    // 设置socket选项
+    // TCP优化选项
     int opt = 1;
+    // 允许地址重用
     if (setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        perror("setsockopt failed");
+        perror("setsockopt SO_REUSEADDR failed");
         close(server_fd_);
         return;
+    }
+
+    // 允许端口重用
+    if (setsockopt(server_fd_, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt SO_REUSEPORT failed");
+        close(server_fd_);
+        return;
+    }
+
+    // 启用TCP_NODELAY，禁用Nagle算法
+    if (setsockopt(server_fd_, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt TCP_NODELAY failed");
+        close(server_fd_);
+        return;
+    }
+
+    // 设置TCP发送和接收缓冲区大小
+    int buffer_size = 64 * 1024;  // 64KB
+    if (setsockopt(server_fd_, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size)) < 0) {
+        perror("setsockopt SO_SNDBUF failed");
+        close(server_fd_);
+        return;
+    }
+    if (setsockopt(server_fd_, SOL_SOCKET, SO_RCVBUF, &buffer_size, sizeof(buffer_size)) < 0) {
+        perror("setsockopt SO_RCVBUF failed");
+        close(server_fd_);
+        return;
+    }
+
+    // 启用TCP保活机制
+    int keepalive = 1;
+    if (setsockopt(server_fd_, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)) < 0) {
+        perror("setsockopt SO_KEEPALIVE failed");
+        close(server_fd_);
+        return;
+    }
+
+    // 设置TCP保活参数
+    int keepidle = 60;    // 空闲60秒后开始发送保活包
+    int keepintvl = 10;   // 保活包发送间隔10秒
+    int keepcnt = 3;      // 最多发送3次保活包
+
+    if (setsockopt(server_fd_, IPPROTO_TCP, TCP_KEEPIDLE, &keepidle, sizeof(keepidle)) < 0) {
+        perror("setsockopt TCP_KEEPIDLE failed");
+    }
+    if (setsockopt(server_fd_, IPPROTO_TCP, TCP_KEEPINTVL, &keepintvl, sizeof(keepintvl)) < 0) {
+        perror("setsockopt TCP_KEEPINTVL failed");
+    }
+    if (setsockopt(server_fd_, IPPROTO_TCP, TCP_KEEPCNT, &keepcnt, sizeof(keepcnt)) < 0) {
+        perror("setsockopt TCP_KEEPCNT failed");
     }
 
     // 绑定地址和端口
@@ -99,6 +151,28 @@ void RedisServer::epoll_loop() {
                         if (errno == EAGAIN || errno == EWOULDBLOCK) break;
                         perror("accept failed");
                         break;
+                    }
+                    
+                    // 设置客户端socket选项
+                    int opt = 1;
+                    // 启用TCP_NODELAY
+                    if (setsockopt(client, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) < 0) {
+                        perror("client setsockopt TCP_NODELAY failed");
+                    }
+
+                    // 设置发送和接收缓冲区
+                    int buffer_size = 32 * 1024;  // 32KB
+                    if (setsockopt(client, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size)) < 0) {
+                        perror("client setsockopt SO_SNDBUF failed");
+                    }
+                    if (setsockopt(client, SOL_SOCKET, SO_RCVBUF, &buffer_size, sizeof(buffer_size)) < 0) {
+                        perror("client setsockopt SO_RCVBUF failed");
+                    }
+
+                    // 启用TCP保活机制
+                    int keepalive = 1;
+                    if (setsockopt(client, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)) < 0) {
+                        perror("client setsockopt SO_KEEPALIVE failed");
                     }
                     
                     // 设置非阻塞
@@ -174,13 +248,24 @@ bool RedisServer::try_parse_command(std::shared_ptr<ClientContext> client) {
     // 将string_view转换为string
     std::string data(client->read_buffer.data(), client->read_pos);
     try {
-        auto cmd = RESPParser::parse(data);  // 现在传递string而不是string_view
-        if (!cmd.empty()) {
-            // 处理命令
-            auto resp = handler_.handle(cmd);
+        auto cmds = RESPParser::parse_multi(data);  // 修改为支持多命令解析
+        if (!cmds.empty()) {
+            std::string response;
+            
+            if (cmds.size() == 1) {
+                // 单个命令处理
+                response = handler_.handle(cmds[0]);
+            } else {
+                // 批量命令处理
+                auto responses = handler_.handle_pipeline(cmds);
+                // 合并所有响应
+                for (const auto& resp : responses) {
+                    response += resp;
+                }
+            }
             
             // 将响应放入写缓冲区
-            client->write_buffer.assign(resp.begin(), resp.end());
+            client->write_buffer.assign(response.begin(), response.end());
             client->write_pos = 0;
             client->is_reading = false;
             
