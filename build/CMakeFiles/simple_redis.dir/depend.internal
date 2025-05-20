@@ -29,5 +29,6 @@ CMakeFiles/simple_redis.dir/src/main.cpp.o
  ../include/ConfigLoader.h
  ../include/DataStore.h
  ../include/DoubleBufferThreadPool.h
+ ../include/Logo.h
  ../include/RedisServer.h
  /root/C++_Projects/simple_redis/src/main.cpp

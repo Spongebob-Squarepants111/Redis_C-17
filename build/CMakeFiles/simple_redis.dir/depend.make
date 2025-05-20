@@ -28,6 +28,7 @@ CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/CommandHandler.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/ConfigLoader.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/DataStore.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/DoubleBufferThreadPool.h
+CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/Logo.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/RedisServer.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../src/main.cpp
 

@@ -38,3 +38,22 @@ target_link_libraries(simple_redis
 
 # 链接器搜索路径（可选，仅当找不到库时使用）
 link_directories(${LIBURING_LIBRARY_DIRS})
+
+# 添加压缩库和哈希库依赖
+find_package(ZLIB REQUIRED)
+
+# 添加到target_link_libraries
+target_link_libraries(simple_redis
+    PRIVATE
+    ${ZLIB_LIBRARIES}
+    xxhash
+    Threads::Threads
+    ${LIBURING_LIBRARIES}
+)
+
+# 包含头文件目录
+target_include_directories(simple_redis
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${LIBURING_INCLUDE_DIRS}
+)
