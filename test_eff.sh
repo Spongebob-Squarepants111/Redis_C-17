@@ -1,0 +1,1 @@
+redis-benchmark -h 127.0.0.1 -p 6379 -c 50 -n 100000 set

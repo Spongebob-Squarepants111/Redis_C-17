@@ -1,0 +1,37 @@
+[
+{
+  "directory": "/root/C++_Projects/simple_redis/build",
+  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -O3 -DNDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.o -c /root/C++_Projects/simple_redis/src/CommandHandler.cpp",
+  "file": "/root/C++_Projects/simple_redis/src/CommandHandler.cpp"
+},
+{
+  "directory": "/root/C++_Projects/simple_redis/build",
+  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -O3 -DNDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o -c /root/C++_Projects/simple_redis/src/ConfigLoader.cpp",
+  "file": "/root/C++_Projects/simple_redis/src/ConfigLoader.cpp"
+},
+{
+  "directory": "/root/C++_Projects/simple_redis/build",
+  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -O3 -DNDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/DataStore.cpp.o -c /root/C++_Projects/simple_redis/src/DataStore.cpp",
+  "file": "/root/C++_Projects/simple_redis/src/DataStore.cpp"
+},
+{
+  "directory": "/root/C++_Projects/simple_redis/build",
+  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -O3 -DNDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/DoubleBufferThreadPool.cpp.o -c /root/C++_Projects/simple_redis/src/DoubleBufferThreadPool.cpp",
+  "file": "/root/C++_Projects/simple_redis/src/DoubleBufferThreadPool.cpp"
+},
+{
+  "directory": "/root/C++_Projects/simple_redis/build",
+  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -O3 -DNDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/RESPParser.cpp.o -c /root/C++_Projects/simple_redis/src/RESPParser.cpp",
+  "file": "/root/C++_Projects/simple_redis/src/RESPParser.cpp"
+},
+{
+  "directory": "/root/C++_Projects/simple_redis/build",
+  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -O3 -DNDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o -c /root/C++_Projects/simple_redis/src/RedisServer.cpp",
+  "file": "/root/C++_Projects/simple_redis/src/RedisServer.cpp"
+},
+{
+  "directory": "/root/C++_Projects/simple_redis/build",
+  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -O3 -DNDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/main.cpp.o -c /root/C++_Projects/simple_redis/src/main.cpp",
+  "file": "/root/C++_Projects/simple_redis/src/main.cpp"
+}
+]

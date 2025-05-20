@@ -1,0 +1,58 @@
+Performing C++ SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_dd21e/fast && /usr/bin/make -f CMakeFiles/cmTC_dd21e.dir/build.make CMakeFiles/cmTC_dd21e.dir/build
+make[1]: Entering directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_dd21e.dir/src.cxx.o
+/usr/bin/g++    -DCMAKE_HAVE_LIBC_PTHREAD   -std=c++17 -o CMakeFiles/cmTC_dd21e.dir/src.cxx.o -c /root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_dd21e
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_dd21e.dir/link.txt --verbose=1
+/usr/bin/g++   -DCMAKE_HAVE_LIBC_PTHREAD    CMakeFiles/cmTC_dd21e.dir/src.cxx.o  -o cmTC_dd21e 
+/usr/bin/ld: CMakeFiles/cmTC_dd21e.dir/src.cxx.o: in function `main':
+src.cxx:(.text+0x46): undefined reference to `pthread_create'
+/usr/bin/ld: src.cxx:(.text+0x52): undefined reference to `pthread_detach'
+/usr/bin/ld: src.cxx:(.text+0x63): undefined reference to `pthread_join'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_dd21e.dir/build.make:87: cmTC_dd21e] Error 1
+make[1]: Leaving directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_dd21e/fast] Error 2
+
+
+Source file was:
+#include <pthread.h>
+
+void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_db26d/fast && /usr/bin/make -f CMakeFiles/cmTC_db26d.dir/build.make CMakeFiles/cmTC_db26d.dir/build
+make[1]: Entering directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_db26d.dir/CheckFunctionExists.cxx.o
+/usr/bin/g++    -DCHECK_FUNCTION_EXISTS=pthread_create   -std=c++17 -o CMakeFiles/cmTC_db26d.dir/CheckFunctionExists.cxx.o -c /root/C++_Projects/simple_redis/build/CMakeFiles/CheckLibraryExists/CheckFunctionExists.cxx
+Linking CXX executable cmTC_db26d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_db26d.dir/link.txt --verbose=1
+/usr/bin/g++   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_db26d.dir/CheckFunctionExists.cxx.o  -o cmTC_db26d  -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_db26d.dir/build.make:87: cmTC_db26d] Error 1
+make[1]: Leaving directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_db26d/fast] Error 2
+
+
+
