@@ -3,14 +3,16 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <iostream>
 #include <cstring>
 
-RedisServer::RedisServer(int port) 
+RedisServer::RedisServer(int port, const std::string& host) 
     : port_(port)
+    , host_(host)
     , readThreadPool(std::thread::hardware_concurrency())
     , writeThreadPool(std::thread::hardware_concurrency()) {}
 
@@ -63,7 +65,7 @@ void RedisServer::run() {
     }
 
     // 设置TCP发送和接收缓冲区大小
-    int buffer_size = 64 * 1024;  // 64KB
+    int buffer_size = INITIAL_BUFFER_SIZE; 
     if (setsockopt(server_fd_, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size)) < 0) {
         perror("setsockopt SO_SNDBUF failed");
         close(server_fd_);
@@ -101,7 +103,7 @@ void RedisServer::run() {
     // 绑定地址和端口
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_addr.s_addr = inet_addr(host_.c_str());
     addr.sin_port = htons(port_);
 
     if (bind(server_fd_, (sockaddr*)&addr, sizeof(addr)) < 0) {
@@ -161,7 +163,7 @@ void RedisServer::epoll_loop() {
                     }
 
                     // 设置发送和接收缓冲区
-                    int buffer_size = 32 * 1024;  // 32KB
+                    int buffer_size = INITIAL_BUFFER_SIZE / 2;  // 32KB
                     if (setsockopt(client, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size)) < 0) {
                         perror("client setsockopt SO_SNDBUF failed");
                     }

@@ -22,8 +22,12 @@ bool ConfigLoader::load(const std::string& path) {
     return true;
 }
 
-std::string ConfigLoader::get(const std::string& section, const std::string& key,
-                              const std::string& def) const {
-    auto it = data_.find(section + "." + key);
-    return it == data_.end() ? def : it->second;
+std::string ConfigLoader::get(std::string_view section, std::string_view key,
+                            std::string_view def) const {
+    std::string lookup_key;
+    lookup_key.reserve(section.size() + 1 + key.size());
+    lookup_key.append(section).append(".").append(key);
+    
+    auto it = data_.find(lookup_key);
+    return it == data_.end() ? std::string(def) : it->second;
 }

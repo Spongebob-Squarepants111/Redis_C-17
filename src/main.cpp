@@ -13,9 +13,10 @@ int main() {
     }
 
     int port = std::stoi(cfg.get("server", "port", "6379"));
-    // std::cout << "Config loaded successfully. Listening on port " << port << std::endl;
+    std::string host = cfg.get("server", "host", "0.0.0.0");
+    std::cout << "Config loaded successfully." << std::endl;
 
-    RedisServer server(port);
+    RedisServer server(port, host);
     server.run();
 
     std::cout << "===== REDISC++17 Server Stopped =====" << std::endl;

@@ -8,6 +8,12 @@
 
 class RedisServer {
 private:
+    static constexpr size_t MAX_EVENTS = 2048;               // 事件处理容量
+    static constexpr size_t INITIAL_BUFFER_SIZE = 128 * 1024;  // 128KB
+    static constexpr size_t MAX_BUFFER_SIZE = INITIAL_BUFFER_SIZE * 2;      // 256KB
+    static constexpr size_t DEFAULT_BUFFER_SIZE = 16 * 1024;   // 16KB
+    
+
     // 客户端上下文结构
     struct ClientContext {
         int fd;                          // 客户端socket文件描述符
@@ -18,7 +24,7 @@ private:
         bool is_reading;                 // 当前是否在读取状态
         std::chrono::steady_clock::time_point last_active; // 最后活跃时间
 
-        explicit ClientContext(int client_fd, size_t initial_buffer_size = 4096) 
+        explicit ClientContext(int client_fd, size_t initial_buffer_size = INITIAL_BUFFER_SIZE) 
             : fd(client_fd)
             , read_buffer(initial_buffer_size)
             , write_buffer(initial_buffer_size)
@@ -30,10 +36,10 @@ private:
 
 private:
     const int port_;
+    const std::string host_;
     int server_fd_;
     int epfd;
-    static constexpr size_t MAX_EVENTS = 1024;
-    static constexpr size_t INITIAL_BUFFER_SIZE = 4096*8;
+
     
     // 连接管理
     std::unordered_map<int, std::shared_ptr<ClientContext>> clients;
@@ -46,7 +52,6 @@ private:
     // 命令处理器
     CommandHandler handler_;
 
-    // 新增的方法
     void add_client(int client_fd);
     void remove_client(int client_fd);
     std::shared_ptr<ClientContext> get_client(int client_fd);
@@ -55,7 +60,7 @@ private:
     void reset_client_buffers(std::shared_ptr<ClientContext> client);
 
 public:
-    explicit RedisServer(int port);
+    explicit RedisServer(int port, const std::string& host = "0.0.0.0");
     ~RedisServer();
     void run();
 
