@@ -24,11 +24,11 @@ public:
         std::chrono::seconds sync_interval;
 
         // 默认配置值
-        static constexpr size_t DEFAULT_SHARD_COUNT = 64;
-        static constexpr size_t DEFAULT_CACHE_SIZE = 20000;
+        static constexpr size_t DEFAULT_SHARD_COUNT = 16;
+        static constexpr size_t DEFAULT_CACHE_SIZE = 200000;
         static constexpr bool DEFAULT_ENABLE_COMPRESSION = false;
         static constexpr const char* DEFAULT_PERSIST_PATH = "./data/";
-        static constexpr long DEFAULT_SYNC_INTERVAL_SEC = 300;
+        static constexpr long DEFAULT_SYNC_INTERVAL_SEC = 600;
 
         Options()
             : 
