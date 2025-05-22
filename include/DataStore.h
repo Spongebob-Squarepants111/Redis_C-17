@@ -23,20 +23,20 @@ public:
         std::string persist_path;
         std::chrono::seconds sync_interval;
 
+        // 默认配置值
+        static constexpr size_t DEFAULT_SHARD_COUNT = 64;
+        static constexpr size_t DEFAULT_CACHE_SIZE = 20000;
+        static constexpr bool DEFAULT_ENABLE_COMPRESSION = false;
+        static constexpr const char* DEFAULT_PERSIST_PATH = "./data/";
+        static constexpr long DEFAULT_SYNC_INTERVAL_SEC = 300;
+
         Options()
-            : cache_size(10000)
-            , enable_compression(true)
-            , persist_path("./data/")
-            , sync_interval(60)
-        {
-            unsigned int cpu_cores = std::thread::hardware_concurrency();
-            // hardware_concurrency 可能返回 0，表示未知，这时默认用256
-            if (cpu_cores == 0) {
-                shard_count = 256;
-            } else {
-                shard_count = std::max<size_t>(2 * cpu_cores, 1);
-            }
-        }
+            : 
+             shard_count(DEFAULT_SHARD_COUNT)
+            ,cache_size(DEFAULT_CACHE_SIZE)
+            , enable_compression(DEFAULT_ENABLE_COMPRESSION)
+            , persist_path(DEFAULT_PERSIST_PATH)
+            , sync_interval(DEFAULT_SYNC_INTERVAL_SEC){}
     };
 
     explicit DataStore(const Options& options = Options{});

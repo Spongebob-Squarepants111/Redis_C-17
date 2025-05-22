@@ -19,6 +19,7 @@ obj/
 .idea/
 *.user
 *.suo
+*.dat
 
 # CMake 生成文件
 CMakeFiles/

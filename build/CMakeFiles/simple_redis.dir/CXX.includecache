@@ -120,10 +120,6 @@ sstream
 iomanip
 -
 
-/root/C++_Projects/simple_redis/src/ConfigLoader.cpp
-ConfigLoader.h
-/root/C++_Projects/simple_redis/src/ConfigLoader.h
-
 /root/C++_Projects/simple_redis/src/DataStore.cpp
 DataStore.h
 /root/C++_Projects/simple_redis/src/DataStore.h
@@ -136,16 +132,6 @@ sstream
 xxhash.h
 -
 cstring
--
-
-/root/C++_Projects/simple_redis/src/DoubleBufferThreadPool.cpp
-DoubleBufferThreadPool.h
-/root/C++_Projects/simple_redis/src/DoubleBufferThreadPool.h
-
-/root/C++_Projects/simple_redis/src/RESPParser.cpp
-RESPParser.h
-/root/C++_Projects/simple_redis/src/RESPParser.h
-sstream
 -
 
 /root/C++_Projects/simple_redis/src/RedisServer.cpp
