@@ -11,6 +11,9 @@
 #include <random>
 #include <chrono>
 
+// 定义缓存行大小为64字节，通常CPU缓存行大小
+#define CACHE_LINE_SIZE 64
+
 class DoubleBufferThreadPool {
 public:
     explicit DoubleBufferThreadPool(size_t initial_threads = std::thread::hardware_concurrency());
@@ -24,7 +27,7 @@ public:
     void shutdown();
 
     // 性能统计接口
-    struct PerformanceStats {
+    struct alignas(CACHE_LINE_SIZE) PerformanceStats {
         size_t total_tasks;
         size_t completed_tasks;
         size_t buffer_switches;
@@ -37,14 +40,14 @@ public:
 
 private:
     // 线程池配置
-    struct ThreadConfig {
+    struct alignas(CACHE_LINE_SIZE) ThreadConfig {
         const size_t min_threads;
         const size_t max_threads;
         std::atomic<size_t> current_threads{0};
     };
 
     // 自适应阈值
-    struct AdaptiveThreshold {
+    struct alignas(CACHE_LINE_SIZE) AdaptiveThreshold {
         std::atomic<size_t> current;
         std::atomic<size_t> hits{0};
         std::atomic<size_t> misses{0};
@@ -54,7 +57,7 @@ private:
         void adjust() {
             size_t h = hits.load();
             size_t m = misses.load();
-            if (h + m >= 1000) {
+            if (h + m >= ADJUSTMENT_INTERVAL) {
                 if (h > m * 2) {
                     current.fetch_add(current.load() / 10);
                 } else if (m > h) {
@@ -67,7 +70,7 @@ private:
     };
 
     // 性能指标
-    struct PoolMetrics {
+    struct alignas(CACHE_LINE_SIZE) PoolMetrics {
         std::atomic<size_t> total_tasks{0};
         std::atomic<size_t> completed_tasks{0};
         std::atomic<size_t> buffer_switches{0};
@@ -83,7 +86,7 @@ private:
     };
 
     // 工作线程指标
-    struct WorkerMetrics {
+    struct alignas(CACHE_LINE_SIZE) WorkerMetrics {
         std::atomic<size_t> processed_tasks{0};
         std::atomic<size_t> active_time{0};
         
@@ -98,24 +101,25 @@ private:
         }
     };
 
-    struct Buffer {
+    struct alignas(CACHE_LINE_SIZE) Buffer {
         std::queue<std::function<void()>> tasks;
-        mutable std::mutex mutex;
+        alignas(CACHE_LINE_SIZE) mutable std::mutex mutex;
         std::condition_variable cv;
     };
 
     // 成员变量
     Buffer buffers_[2];
-    std::atomic<size_t> write_index_{0};
-    std::atomic<bool> stop_{false};
+    alignas(CACHE_LINE_SIZE) std::atomic<size_t> write_index_{0};
+    alignas(CACHE_LINE_SIZE) std::atomic<bool> stop_{false};
     std::vector<std::thread> workers_;
     std::vector<WorkerMetrics> worker_metrics_;
     ThreadConfig thread_config_;
     AdaptiveThreshold threshold_;
     PoolMetrics metrics_;
-    std::atomic<size_t> active_threads_{0};
+    alignas(CACHE_LINE_SIZE) std::atomic<size_t> active_threads_{0};
 
     static constexpr size_t INITIAL_THRESHOLD = 1000;
+    static constexpr size_t ADJUSTMENT_INTERVAL = 1000; // 调整阈值的样本间隔数
 
     // 私有方法
     void worker_thread();

@@ -14,8 +14,8 @@ private:
     static constexpr size_t DEFAULT_BUFFER_SIZE = 16 * 1024;   // 16KB
     
 
-    // 客户端上下文结构
-    struct ClientContext {
+    // 客户端上下文结构，对齐到缓存行以减少伪共享
+    struct alignas(CACHE_LINE_SIZE) ClientContext {
         int fd;                          // 客户端socket文件描述符
         std::vector<char> read_buffer;   // 读缓冲区
         std::vector<char> write_buffer;  // 写缓冲区
@@ -43,7 +43,7 @@ private:
     
     // 连接管理
     std::unordered_map<int, std::shared_ptr<ClientContext>> clients;
-    std::mutex clients_mutex;
+    alignas(CACHE_LINE_SIZE) mutable std::mutex clients_mutex;
     
     // 线程池
     DoubleBufferThreadPool readThreadPool;

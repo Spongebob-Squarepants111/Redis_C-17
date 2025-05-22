@@ -110,29 +110,9 @@ DoubleBufferThreadPool.h
 CommandHandler.h
 ../include/CommandHandler.h
 
-/root/C++_Projects/simple_redis/src/CommandHandler.cpp
-CommandHandler.h
-/root/C++_Projects/simple_redis/src/CommandHandler.h
-chrono
--
-sstream
--
-iomanip
--
-
-/root/C++_Projects/simple_redis/src/DataStore.cpp
-DataStore.h
-/root/C++_Projects/simple_redis/src/DataStore.h
-filesystem
--
-fstream
--
-sstream
--
-xxhash.h
--
-cstring
--
+/root/C++_Projects/simple_redis/src/DoubleBufferThreadPool.cpp
+DoubleBufferThreadPool.h
+/root/C++_Projects/simple_redis/src/DoubleBufferThreadPool.h
 
 /root/C++_Projects/simple_redis/src/RedisServer.cpp
 RedisServer.h

@@ -14,6 +14,9 @@
 #include <thread>
 #include <atomic>
 
+// 定义缓存行大小为64字节，通常CPU缓存行大小
+#define CACHE_LINE_SIZE 64
+
 class DataStore {
 public:
     struct Options {
@@ -50,7 +53,8 @@ public:
 private:
     // LRU缓存实现
     class LRUCache {
-        struct CacheEntry {
+        // 使用对齐属性确保CacheEntry位于缓存行边界
+        struct alignas(CACHE_LINE_SIZE) CacheEntry {
             std::string key;
             std::string value;
             std::chrono::steady_clock::time_point last_access;
@@ -102,13 +106,13 @@ private:
         size_t capacity_;
         std::list<CacheEntry> cache_list_;
         std::unordered_map<std::string, typename std::list<CacheEntry>::iterator> cache_map_;
-        mutable std::mutex mutex_;
+        alignas(CACHE_LINE_SIZE) mutable std::mutex mutex_; // 对齐互斥锁以避免伪共享
     };
 
-    // 分片结构
-    struct Shard {
+    // 分片结构，对齐到缓存行以减少伪共享
+    struct alignas(CACHE_LINE_SIZE) Shard {
         std::unordered_map<std::string, std::string> store;
-        mutable std::shared_mutex mutex;
+        alignas(CACHE_LINE_SIZE) mutable std::shared_mutex mutex; // 对齐互斥锁
         std::string persist_file;
     };
 
@@ -135,5 +139,5 @@ private:
     
     // 同步线程
     std::thread sync_thread_;
-    std::atomic<bool> should_stop_{false};
+    alignas(CACHE_LINE_SIZE) std::atomic<bool> should_stop_{false}; // 对齐原子变量
 };
