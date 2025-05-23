@@ -8,10 +8,10 @@
 
 class RedisServer {
 private:
-    static constexpr size_t MAX_EVENTS = 2048;               // 事件处理容量
-    static constexpr size_t INITIAL_BUFFER_SIZE = 128 * 1024;  // 128KB
-    static constexpr size_t MAX_BUFFER_SIZE = INITIAL_BUFFER_SIZE * 2;      // 256KB
-    static constexpr size_t DEFAULT_BUFFER_SIZE = 16 * 1024;   // 16KB
+    static constexpr size_t MAX_EVENTS = 4096;               // 事件处理容量
+    static constexpr size_t INITIAL_BUFFER_SIZE = 256 * 1024;  // 128KB
+    static constexpr size_t MAX_BUFFER_SIZE = INITIAL_BUFFER_SIZE * 4;      // 256KB
+    static constexpr size_t DEFAULT_BUFFER_SIZE = 128 * 1024;   // 16KB
     
 
     // 客户端上下文结构，对齐到缓存行以减少伪共享

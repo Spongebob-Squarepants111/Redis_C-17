@@ -127,6 +127,12 @@ private:
     bool try_steal_task(std::function<void()>& task);
     void check_and_adjust_thread_count();
     void resize_thread_pool(size_t target_size);
+    
+    // 获取读缓冲区索引的方法
+    inline size_t read_index() const noexcept {
+        // 在双缓冲系统中，读缓冲区索引是写缓冲区索引的补数
+        return 1 - write_index_.load(std::memory_order_acquire);
+    }
 };
 
 
