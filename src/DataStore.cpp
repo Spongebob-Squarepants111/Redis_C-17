@@ -8,7 +8,7 @@
 DataStore::DataStore(const Options& options)
     : shards_(options.shard_count)
     , shard_count_(options.shard_count)
-    , cache_(options.cache_size)
+    , cache_(options.cache_size, options.memory_pool_block_size)
     , enable_compression_(options.enable_compression)
     , persist_path_(options.persist_path)
     , sync_interval_(options.sync_interval) {
