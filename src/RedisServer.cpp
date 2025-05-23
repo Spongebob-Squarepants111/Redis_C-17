@@ -193,11 +193,15 @@ void RedisServer::epoll_loop() {
                     readThreadPool.enqueue([this, fd]() {
                         handle_read(fd);
                     });
+                    // std::cout << "read:++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+                    // readThreadPool.print_stats(std::cout, true);
                 }
                 if (events[i].events & EPOLLOUT) {
                     writeThreadPool.enqueue([this, fd]() {
                         handle_write_ready(fd);
                     });
+                    // std::cout << "write:======================================" << std::endl;
+                    // writeThreadPool.print_stats(std::cout, true);
                 }
             }
         }
