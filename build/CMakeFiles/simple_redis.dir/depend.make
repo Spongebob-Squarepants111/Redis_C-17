@@ -11,24 +11,26 @@ CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o: ../src/ConfigLoader.cpp
 CMakeFiles/simple_redis.dir/src/DataStore.cpp.o: ../include/DataStore.h
 CMakeFiles/simple_redis.dir/src/DataStore.cpp.o: ../src/DataStore.cpp
 
-CMakeFiles/simple_redis.dir/src/DoubleBufferThreadPool.cpp.o: ../include/DoubleBufferThreadPool.h
-CMakeFiles/simple_redis.dir/src/DoubleBufferThreadPool.cpp.o: ../src/DoubleBufferThreadPool.cpp
-
 CMakeFiles/simple_redis.dir/src/RESPParser.cpp.o: ../include/RESPParser.h
 CMakeFiles/simple_redis.dir/src/RESPParser.cpp.o: ../src/RESPParser.cpp
 
+CMakeFiles/simple_redis.dir/src/RedisObject.cpp.o: ../src/RedisObject.cpp
+
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/CommandHandler.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/DataStore.h
-CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/DoubleBufferThreadPool.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/RESPParser.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/RedisServer.h
+CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/ThreadPool.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../src/RedisServer.cpp
+
+CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o: ../include/ThreadPool.h
+CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o: ../src/ThreadPool.cpp
 
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/CommandHandler.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/ConfigLoader.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/DataStore.h
-CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/DoubleBufferThreadPool.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/Logo.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/RedisServer.h
+CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/ThreadPool.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../src/main.cpp
 

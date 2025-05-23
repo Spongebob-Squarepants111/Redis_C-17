@@ -1,21 +1,21 @@
-Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Performing C++ SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
 Change Dir: /root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_03dfb/fast && /usr/bin/make -f CMakeFiles/cmTC_03dfb.dir/build.make CMakeFiles/cmTC_03dfb.dir/build
+Run Build Command(s):/usr/bin/make cmTC_28f2c/fast && /usr/bin/make -f CMakeFiles/cmTC_28f2c.dir/build.make CMakeFiles/cmTC_28f2c.dir/build
 make[1]: Entering directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_03dfb.dir/src.c.o
-/usr/bin/gcc   -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_03dfb.dir/src.c.o   -c /root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp/src.c
-Linking C executable cmTC_03dfb
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_03dfb.dir/link.txt --verbose=1
-/usr/bin/gcc  -DCMAKE_HAVE_LIBC_PTHREAD    CMakeFiles/cmTC_03dfb.dir/src.c.o  -o cmTC_03dfb 
-/usr/bin/ld: CMakeFiles/cmTC_03dfb.dir/src.c.o: in function `main':
-src.c:(.text+0x46): undefined reference to `pthread_create'
-/usr/bin/ld: src.c:(.text+0x52): undefined reference to `pthread_detach'
-/usr/bin/ld: src.c:(.text+0x63): undefined reference to `pthread_join'
+Building CXX object CMakeFiles/cmTC_28f2c.dir/src.cxx.o
+/usr/bin/c++    -DCMAKE_HAVE_LIBC_PTHREAD   -std=c++17 -o CMakeFiles/cmTC_28f2c.dir/src.cxx.o -c /root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_28f2c
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_28f2c.dir/link.txt --verbose=1
+/usr/bin/c++   -DCMAKE_HAVE_LIBC_PTHREAD    CMakeFiles/cmTC_28f2c.dir/src.cxx.o  -o cmTC_28f2c 
+/usr/bin/ld: CMakeFiles/cmTC_28f2c.dir/src.cxx.o: in function `main':
+src.cxx:(.text+0x46): undefined reference to `pthread_create'
+/usr/bin/ld: src.cxx:(.text+0x52): undefined reference to `pthread_detach'
+/usr/bin/ld: src.cxx:(.text+0x63): undefined reference to `pthread_join'
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_03dfb.dir/build.make:87: cmTC_03dfb] Error 1
+make[1]: *** [CMakeFiles/cmTC_28f2c.dir/build.make:87: cmTC_28f2c] Error 1
 make[1]: Leaving directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
-make: *** [Makefile:121: cmTC_03dfb/fast] Error 2
+make: *** [Makefile:121: cmTC_28f2c/fast] Error 2
 
 
 Source file was:
@@ -41,18 +41,18 @@ int main(void)
 Determining if the function pthread_create exists in the pthreads failed with the following output:
 Change Dir: /root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_5ba33/fast && /usr/bin/make -f CMakeFiles/cmTC_5ba33.dir/build.make CMakeFiles/cmTC_5ba33.dir/build
+Run Build Command(s):/usr/bin/make cmTC_45fc8/fast && /usr/bin/make -f CMakeFiles/cmTC_45fc8.dir/build.make CMakeFiles/cmTC_45fc8.dir/build
 make[1]: Entering directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_5ba33.dir/CheckFunctionExists.c.o
-/usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_5ba33.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
-Linking C executable cmTC_5ba33
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5ba33.dir/link.txt --verbose=1
-/usr/bin/gcc  -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_5ba33.dir/CheckFunctionExists.c.o  -o cmTC_5ba33  -lpthreads 
+Building CXX object CMakeFiles/cmTC_45fc8.dir/CheckFunctionExists.cxx.o
+/usr/bin/c++    -DCHECK_FUNCTION_EXISTS=pthread_create   -std=c++17 -o CMakeFiles/cmTC_45fc8.dir/CheckFunctionExists.cxx.o -c /root/C++_Projects/simple_redis/build/CMakeFiles/CheckLibraryExists/CheckFunctionExists.cxx
+Linking CXX executable cmTC_45fc8
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_45fc8.dir/link.txt --verbose=1
+/usr/bin/c++   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_45fc8.dir/CheckFunctionExists.cxx.o  -o cmTC_45fc8  -lpthreads 
 /usr/bin/ld: cannot find -lpthreads
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_5ba33.dir/build.make:87: cmTC_5ba33] Error 1
+make[1]: *** [CMakeFiles/cmTC_45fc8.dir/build.make:87: cmTC_45fc8] Error 1
 make[1]: Leaving directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
-make: *** [Makefile:121: cmTC_5ba33/fast] Error 2
+make: *** [Makefile:121: cmTC_45fc8/fast] Error 2
 
 
 

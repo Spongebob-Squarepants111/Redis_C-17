@@ -207,7 +207,6 @@ void RedisServer::epoll_loop() {
         }
     }
 }
-
 void RedisServer::handle_read(int client_fd) {
     auto client = get_client(client_fd);
     if (!client) return;

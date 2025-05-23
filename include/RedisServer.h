@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 #include <mutex>
-#include "DoubleBufferThreadPool.h"
+#include "ThreadPool.h"
 #include "CommandHandler.h"
 
 class RedisServer {
@@ -46,8 +46,8 @@ private:
     alignas(CACHE_LINE_SIZE) mutable std::mutex clients_mutex;
     
     // 线程池
-    DoubleBufferThreadPool readThreadPool;
-    DoubleBufferThreadPool writeThreadPool;
+    ThreadPool readThreadPool;
+    ThreadPool writeThreadPool;
     
     // 命令处理器
     CommandHandler handler_;

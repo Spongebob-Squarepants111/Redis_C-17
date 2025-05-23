@@ -204,33 +204,6 @@ src/DataStore.cpp.s:
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/DataStore.cpp.s
 .PHONY : src/DataStore.cpp.s
 
-src/DoubleBufferThreadPool.o: src/DoubleBufferThreadPool.cpp.o
-
-.PHONY : src/DoubleBufferThreadPool.o
-
-# target to build an object file
-src/DoubleBufferThreadPool.cpp.o:
-	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/DoubleBufferThreadPool.cpp.o
-.PHONY : src/DoubleBufferThreadPool.cpp.o
-
-src/DoubleBufferThreadPool.i: src/DoubleBufferThreadPool.cpp.i
-
-.PHONY : src/DoubleBufferThreadPool.i
-
-# target to preprocess a source file
-src/DoubleBufferThreadPool.cpp.i:
-	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/DoubleBufferThreadPool.cpp.i
-.PHONY : src/DoubleBufferThreadPool.cpp.i
-
-src/DoubleBufferThreadPool.s: src/DoubleBufferThreadPool.cpp.s
-
-.PHONY : src/DoubleBufferThreadPool.s
-
-# target to generate assembly for a file
-src/DoubleBufferThreadPool.cpp.s:
-	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/DoubleBufferThreadPool.cpp.s
-.PHONY : src/DoubleBufferThreadPool.cpp.s
-
 src/RESPParser.o: src/RESPParser.cpp.o
 
 .PHONY : src/RESPParser.o
@@ -258,6 +231,33 @@ src/RESPParser.cpp.s:
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RESPParser.cpp.s
 .PHONY : src/RESPParser.cpp.s
 
+src/RedisObject.o: src/RedisObject.cpp.o
+
+.PHONY : src/RedisObject.o
+
+# target to build an object file
+src/RedisObject.cpp.o:
+	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RedisObject.cpp.o
+.PHONY : src/RedisObject.cpp.o
+
+src/RedisObject.i: src/RedisObject.cpp.i
+
+.PHONY : src/RedisObject.i
+
+# target to preprocess a source file
+src/RedisObject.cpp.i:
+	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RedisObject.cpp.i
+.PHONY : src/RedisObject.cpp.i
+
+src/RedisObject.s: src/RedisObject.cpp.s
+
+.PHONY : src/RedisObject.s
+
+# target to generate assembly for a file
+src/RedisObject.cpp.s:
+	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RedisObject.cpp.s
+.PHONY : src/RedisObject.cpp.s
+
 src/RedisServer.o: src/RedisServer.cpp.o
 
 .PHONY : src/RedisServer.o
@@ -284,6 +284,33 @@ src/RedisServer.s: src/RedisServer.cpp.s
 src/RedisServer.cpp.s:
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RedisServer.cpp.s
 .PHONY : src/RedisServer.cpp.s
+
+src/ThreadPool.o: src/ThreadPool.cpp.o
+
+.PHONY : src/ThreadPool.o
+
+# target to build an object file
+src/ThreadPool.cpp.o:
+	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o
+.PHONY : src/ThreadPool.cpp.o
+
+src/ThreadPool.i: src/ThreadPool.cpp.i
+
+.PHONY : src/ThreadPool.i
+
+# target to preprocess a source file
+src/ThreadPool.cpp.i:
+	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.i
+.PHONY : src/ThreadPool.cpp.i
+
+src/ThreadPool.s: src/ThreadPool.cpp.s
+
+.PHONY : src/ThreadPool.s
+
+# target to generate assembly for a file
+src/ThreadPool.cpp.s:
+	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.s
+.PHONY : src/ThreadPool.cpp.s
 
 src/main.o: src/main.cpp.o
 
@@ -330,15 +357,18 @@ help:
 	@echo "... src/DataStore.o"
 	@echo "... src/DataStore.i"
 	@echo "... src/DataStore.s"
-	@echo "... src/DoubleBufferThreadPool.o"
-	@echo "... src/DoubleBufferThreadPool.i"
-	@echo "... src/DoubleBufferThreadPool.s"
 	@echo "... src/RESPParser.o"
 	@echo "... src/RESPParser.i"
 	@echo "... src/RESPParser.s"
+	@echo "... src/RedisObject.o"
+	@echo "... src/RedisObject.i"
+	@echo "... src/RedisObject.s"
 	@echo "... src/RedisServer.o"
 	@echo "... src/RedisServer.i"
 	@echo "... src/RedisServer.s"
+	@echo "... src/ThreadPool.o"
+	@echo "... src/ThreadPool.i"
+	@echo "... src/ThreadPool.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
