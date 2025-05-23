@@ -5,34 +5,18 @@
 #include <mutex>
 #include "ThreadPool.h"
 #include "CommandHandler.h"
+#include "ClientContextPool.h"
 
 class RedisServer {
 private:
     static constexpr size_t MAX_EVENTS = 4096;               // 事件处理容量
-    static constexpr size_t INITIAL_BUFFER_SIZE = 256 * 1024;  // 128KB
-    static constexpr size_t MAX_BUFFER_SIZE = INITIAL_BUFFER_SIZE * 4;      // 256KB
-    static constexpr size_t DEFAULT_BUFFER_SIZE = 128 * 1024;   // 16KB
+    static constexpr size_t INITIAL_BUFFER_SIZE = 64 * 1024;  // 256KB
+    static constexpr size_t MAX_BUFFER_SIZE = INITIAL_BUFFER_SIZE * 4;      // 1MB
+    static constexpr size_t DEFAULT_BUFFER_SIZE = 32 * 1024;   // 128KB
     
-
-    // 客户端上下文结构，对齐到缓存行以减少伪共享
-    struct alignas(CACHE_LINE_SIZE) ClientContext {
-        int fd;                          // 客户端socket文件描述符
-        std::vector<char> read_buffer;   // 读缓冲区
-        std::vector<char> write_buffer;  // 写缓冲区
-        size_t read_pos;                 // 当前读取位置
-        size_t write_pos;                // 当前写入位置
-        bool is_reading;                 // 当前是否在读取状态
-        std::chrono::steady_clock::time_point last_active; // 最后活跃时间
-
-        explicit ClientContext(int client_fd, size_t initial_buffer_size = INITIAL_BUFFER_SIZE) 
-            : fd(client_fd)
-            , read_buffer(initial_buffer_size)
-            , write_buffer(initial_buffer_size)
-            , read_pos(0)
-            , write_pos(0)
-            , is_reading(true)
-            , last_active(std::chrono::steady_clock::now()) {}
-    };
+    // 使用ClientContextPool中定义的ClientContext和ClientContextPtr
+    using ClientContext = ClientContextPool::ClientContext;
+    using ClientContextPtr = ClientContextPool::ClientContextPtr;
 
 private:
     const int port_;
@@ -40,9 +24,11 @@ private:
     int server_fd_;
     int epfd;
 
+    // 客户端上下文池
+    ClientContextPool client_pool_;
     
     // 连接管理
-    std::unordered_map<int, std::shared_ptr<ClientContext>> clients;
+    std::unordered_map<int, ClientContextPtr> clients;
     alignas(CACHE_LINE_SIZE) mutable std::mutex clients_mutex;
     
     // 线程池
@@ -54,10 +40,10 @@ private:
 
     void add_client(int client_fd);
     void remove_client(int client_fd);
-    std::shared_ptr<ClientContext> get_client(int client_fd);
-    void handle_client_data(std::shared_ptr<ClientContext> client);
-    bool try_parse_command(std::shared_ptr<ClientContext> client);
-    void reset_client_buffers(std::shared_ptr<ClientContext> client);
+    ClientContextPtr get_client(int client_fd);
+    void handle_client_data(ClientContextPtr client);
+    bool try_parse_command(ClientContextPtr client);
+    void reset_client_buffers(ClientContextPtr client);
 
 public:
     explicit RedisServer(int port, const std::string& host = "0.0.0.0");

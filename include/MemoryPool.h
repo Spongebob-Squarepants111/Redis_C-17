@@ -13,8 +13,11 @@
 template <typename T>
 class MemoryPool {
 public:
+    // 默认内存块大小常量
+    static constexpr size_t DEFAULT_BLOCK_SIZE = 1024;
+
     // 构造函数，指定初始块大小和每个块中对象数量
-    explicit MemoryPool(size_t block_size = 1024)
+    explicit MemoryPool(size_t block_size = DEFAULT_BLOCK_SIZE)
         : block_size_(block_size), free_objects_(nullptr) {
         // 分配第一个内存块
         allocate_block();

@@ -13,12 +13,29 @@
 RedisServer::RedisServer(int port, const std::string& host) 
     : port_(port)
     , host_(host)
+    , client_pool_(100, 200) // 预分配128个客户端上下文，最多2000个
     , readThreadPool(std::thread::hardware_concurrency())
     , writeThreadPool(std::thread::hardware_concurrency()) {}
 
+RedisServer::~RedisServer() {
+    // 在析构函数中释放资源
+    for (const auto& [fd, client] : clients) {
+        close(fd);
+    }
+    
+    if (server_fd_ >= 0) {
+        close(server_fd_);
+    }
+    
+    if (epfd >= 0) {
+        close(epfd);
+    }
+}
+
 void RedisServer::add_client(int client_fd) {
     std::lock_guard<std::mutex> lock(clients_mutex);
-    clients[client_fd] = std::make_shared<ClientContext>(client_fd);
+    // 使用客户端池分配ClientContext
+    clients[client_fd] = client_pool_.acquire(client_fd);
 }
 
 void RedisServer::remove_client(int client_fd) {
@@ -27,7 +44,7 @@ void RedisServer::remove_client(int client_fd) {
     close(client_fd);
 }
 
-std::shared_ptr<RedisServer::ClientContext> RedisServer::get_client(int client_fd) {
+RedisServer::ClientContextPtr RedisServer::get_client(int client_fd) {
     std::lock_guard<std::mutex> lock(clients_mutex);
     auto it = clients.find(client_fd);
     return (it != clients.end()) ? it->second : nullptr;
@@ -207,142 +224,161 @@ void RedisServer::epoll_loop() {
         }
     }
 }
+
 void RedisServer::handle_read(int client_fd) {
     auto client = get_client(client_fd);
-    if (!client) return;
+    if (!client) {
+        return;
+    }
 
-    client->last_active = std::chrono::steady_clock::now();
-    
+    char buffer[DEFAULT_BUFFER_SIZE];
     while (true) {
-        // 确保缓冲区有足够空间
-        if (client->read_pos >= client->read_buffer.size()) {
-            client->read_buffer.resize(client->read_buffer.size() * 2);
-        }
-        
-        // 读取数据
-        ssize_t n = read(client_fd, 
-                        client->read_buffer.data() + client->read_pos,
-                        client->read_buffer.size() - client->read_pos);
-                        
-        if (n > 0) {
-            client->read_pos += n;
-            
-            // 尝试解析命令
-            if (try_parse_command(client)) {
-                // 修改epoll事件为写
-                epoll_event ev{EPOLLOUT | EPOLLET, {.fd = client_fd}};
-                epoll_ctl(epfd, EPOLL_CTL_MOD, client_fd, &ev);
-                break;
-            }
-        } else if (n == 0) {
-            // 客户端断开连接
-            remove_client(client_fd);
-            return;
-        } else {
+        ssize_t n = recv(client_fd, buffer, sizeof(buffer), 0);
+        if (n < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 break;
             }
-            // 发生错误
+            perror("recv failed");
             remove_client(client_fd);
             return;
+        }
+        
+        if (n == 0) {  // 客户端关闭连接
+            remove_client(client_fd);
+            return;
+        }
+        
+        // 更新最后活跃时间
+        client->last_active = std::chrono::steady_clock::now();
+
+        // 调整缓冲区大小
+        if (client->read_pos + n > client->read_buffer.size()) {
+            if (client->read_buffer.size() >= MAX_BUFFER_SIZE) {
+                // 缓冲区已达最大大小，重置
+                reset_client_buffers(client);
+                continue;
+            }
+            // 扩大缓冲区
+            client->read_buffer.resize(std::min(client->read_buffer.size() * 2, MAX_BUFFER_SIZE));
+        }
+        
+        // 复制数据到缓冲区
+        std::copy(buffer, buffer + n, client->read_buffer.begin() + client->read_pos);
+        client->read_pos += n;
+        
+        // 尝试解析命令
+        if (try_parse_command(client)) {
+            // 设置写事件监听
+            epoll_event ev{EPOLLOUT | EPOLLET, {.fd = client_fd}};
+            epoll_ctl(epfd, EPOLL_CTL_MOD, client_fd, &ev);
+            client->is_reading = false;
         }
     }
 }
 
-bool RedisServer::try_parse_command(std::shared_ptr<ClientContext> client) {
-    // 将string_view转换为string
-    std::string data(client->read_buffer.data(), client->read_pos);
+bool RedisServer::try_parse_command(ClientContextPtr client) {
     try {
-        auto cmds = RESPParser::parse_multi(data);  // 修改为支持多命令解析
+        // 将读缓冲区内容转换为字符串
+        std::string data(client->read_buffer.begin(), client->read_buffer.begin() + client->read_pos);
+        
+        // 尝试解析为Redis命令
+        std::vector<std::vector<std::string>> cmds = RESPParser::parse_multi(data);
+        
+        // 如果有命令，处理它们
         if (!cmds.empty()) {
-            std::string response;
+            // 处理多个命令（pipeline）
+            auto results = handler_.handle_pipeline(cmds);
             
-            if (cmds.size() == 1) {
-                // 单个命令处理
-                response = handler_.handle(cmds[0]);
-            } else {
-                // 批量命令处理
-                auto responses = handler_.handle_pipeline(cmds);
-                // 合并所有响应
-                for (const auto& resp : responses) {
-                    response += resp;
-                }
+            // 将结果写入写缓冲区
+            std::string response;
+            for (const auto& result : results) {
+                response += result;
             }
             
-            // 将响应放入写缓冲区
-            client->write_buffer.assign(response.begin(), response.end());
-            client->write_pos = 0;
-            client->is_reading = false;
+            // 调整写缓冲区大小
+            if (client->write_pos + response.size() > client->write_buffer.size()) {
+                if (client->write_buffer.size() >= MAX_BUFFER_SIZE) {
+                    // 缓冲区已达最大大小，重置
+                    reset_client_buffers(client);
+                    return false;
+                }
+                // 扩大写缓冲区
+                client->write_buffer.resize(std::min(client->write_buffer.size() * 2, MAX_BUFFER_SIZE));
+            }
+            
+            // 复制响应到写缓冲区
+            std::copy(response.begin(), response.end(), client->write_buffer.begin() + client->write_pos);
+            client->write_pos += response.size();
             
             // 重置读缓冲区
-            reset_client_buffers(client);
-            return true;
+            client->read_pos = 0;
+            
+            return true;  // 有数据需要写回
         }
     } catch (const std::exception& e) {
-        // 解析错误处理
+        // 解析错误
         std::string error = "-ERR " + std::string(e.what()) + "\r\n";
-        client->write_buffer.assign(error.begin(), error.end());
-        client->write_pos = 0;
-        client->is_reading = false;
-        reset_client_buffers(client);
-        return true;
+        
+        // 调整写缓冲区大小
+        if (client->write_pos + error.size() > client->write_buffer.size()) {
+            client->write_buffer.resize(std::min(client->write_buffer.size() * 2, MAX_BUFFER_SIZE));
+        }
+        
+        // 写入错误响应
+        std::copy(error.begin(), error.end(), client->write_buffer.begin() + client->write_pos);
+        client->write_pos += error.size();
+        
+        // 重置读缓冲区
+        client->read_pos = 0;
+        
+        return true;  // 有错误需要写回
     }
-    return false;
+    
+    return false;  // 没有完整命令
 }
 
 void RedisServer::handle_write_ready(int client_fd) {
     auto client = get_client(client_fd);
-    if (!client) return;
+    if (!client || client->write_pos == 0) {
+        return;
+    }
 
-    // client->last_active = std::chrono::steady_clock::now();
-    
-    while (client->write_pos < client->write_buffer.size()) {
-        ssize_t n = write(client_fd,
-                         client->write_buffer.data() + client->write_pos,
-                         client->write_buffer.size() - client->write_pos);
-                         
-        if (n > 0) {
-            client->write_pos += n;
-        } else if (n < 0) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                return;
-            }
-            // 发生错误
-            remove_client(client_fd);
-            return;
+    // 更新最后活跃时间
+    client->last_active = std::chrono::steady_clock::now();
+
+    // 发送数据
+    ssize_t n = send(client_fd, client->write_buffer.data(), client->write_pos, 0);
+    if (n < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            return;  // 缓冲区满，稍后重试
         }
+        perror("send failed");
+        remove_client(client_fd);
+        return;
     }
     
-    // 写入完成，重置状态并切换回读模式
-    reset_client_buffers(client);
-    client->is_reading = true;
+    if (n == 0) {  // 客户端关闭连接
+        remove_client(client_fd);
+        return;
+    }
     
-    // 修改epoll事件为读
-    epoll_event ev{EPOLLIN | EPOLLET, {.fd = client_fd}};
-    epoll_ctl(epfd, EPOLL_CTL_MOD, client_fd, &ev);
+    // 更新写位置
+    if (static_cast<size_t>(n) < client->write_pos) {
+        // 还有数据未发送完，移动剩余数据
+        std::copy(client->write_buffer.begin() + n, client->write_buffer.begin() + client->write_pos, client->write_buffer.begin());
+        client->write_pos -= n;
+    } else {
+        // 所有数据已发送
+        client->write_pos = 0;
+        
+        // 切换回读取模式
+        client->is_reading = true;
+        epoll_event ev{EPOLLIN | EPOLLET, {.fd = client_fd}};
+        epoll_ctl(epfd, EPOLL_CTL_MOD, client_fd, &ev);
+    }
 }
 
-void RedisServer::reset_client_buffers(std::shared_ptr<ClientContext> client) {
-    // 重置读写位置
+void RedisServer::reset_client_buffers(ClientContextPtr client) {
     client->read_pos = 0;
     client->write_pos = 0;
-    
-    // 如果缓冲区过大，则收缩到初始大小
-    if (client->read_buffer.size() > INITIAL_BUFFER_SIZE * 2) {
-        client->read_buffer.shrink_to_fit();
-        client->read_buffer.resize(INITIAL_BUFFER_SIZE);
-    }
-    if (client->write_buffer.size() > INITIAL_BUFFER_SIZE * 2) {
-        client->write_buffer.shrink_to_fit();
-        client->write_buffer.resize(INITIAL_BUFFER_SIZE);
-    }
-}
-
-RedisServer::~RedisServer() {
-    // 清理资源
-    for (const auto& [fd, client] : clients) {
-        close(fd);
-    }
-    close(server_fd_);
-    close(epfd);
 }

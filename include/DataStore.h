@@ -29,12 +29,13 @@ public:
         size_t memory_pool_block_size;  // 内存池块大小
 
         // 默认配置值
-        static constexpr size_t DEFAULT_SHARD_COUNT = 16;
+        static constexpr size_t DEFAULT_SHARD_COUNT = 128;
         static constexpr size_t DEFAULT_CACHE_SIZE = 200000;
         static constexpr bool DEFAULT_ENABLE_COMPRESSION = false;
         static constexpr const char* DEFAULT_PERSIST_PATH = "./data/";
         static constexpr long DEFAULT_SYNC_INTERVAL_SEC = 600;
-        static constexpr size_t DEFAULT_MEMORY_POOL_BLOCK_SIZE = 1024;
+        // 使用LRUCache中的默认值
+        static constexpr size_t DEFAULT_MEMORY_POOL_BLOCK_SIZE = 4096;
 
         Options()
             : 
@@ -74,7 +75,7 @@ private:
         using CacheEntryPool = MemoryPool<CacheEntry>;
 
     public:
-        explicit LRUCache(size_t capacity, size_t pool_block_size = 1024) 
+        explicit LRUCache(size_t capacity, size_t pool_block_size) 
             : capacity_(capacity), entry_pool_(pool_block_size) {}
 
         void put(const std::string& key, const std::string& value) {
