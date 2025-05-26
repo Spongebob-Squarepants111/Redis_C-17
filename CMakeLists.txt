@@ -17,9 +17,29 @@ include_directories(
 # 源文件列表
 file(GLOB SRCS src/*.cpp)
 
+# 明确列出源文件以避免文件更新问题
+set(EXPLICIT_SRCS
+    src/AdaptiveCache.cpp
+    src/CommandHandler.cpp
+    src/ConfigLoader.cpp
+    src/DataStore.cpp
+    src/main.cpp
+    src/RedisServer.cpp
+    src/RESPParser.cpp
+    src/ThreadPool.cpp
+)
+
 # 生成可执行文件
-add_executable(simple_redis ${SRCS})
-add_compile_options(-O3)
+add_executable(simple_redis ${EXPLICIT_SRCS})
+
+# 优化选项
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
+
+# 默认使用Release构建类型
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
 
 # 拷贝配置文件（如 config.ini）到构建目录
 configure_file(

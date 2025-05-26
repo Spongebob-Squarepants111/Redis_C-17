@@ -123,6 +123,33 @@ simple_redis/fast:
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/build
 .PHONY : simple_redis/fast
 
+src/AdaptiveCache.o: src/AdaptiveCache.cpp.o
+
+.PHONY : src/AdaptiveCache.o
+
+# target to build an object file
+src/AdaptiveCache.cpp.o:
+	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.o
+.PHONY : src/AdaptiveCache.cpp.o
+
+src/AdaptiveCache.i: src/AdaptiveCache.cpp.i
+
+.PHONY : src/AdaptiveCache.i
+
+# target to preprocess a source file
+src/AdaptiveCache.cpp.i:
+	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.i
+.PHONY : src/AdaptiveCache.cpp.i
+
+src/AdaptiveCache.s: src/AdaptiveCache.cpp.s
+
+.PHONY : src/AdaptiveCache.s
+
+# target to generate assembly for a file
+src/AdaptiveCache.cpp.s:
+	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.s
+.PHONY : src/AdaptiveCache.cpp.s
+
 src/CommandHandler.o: src/CommandHandler.cpp.o
 
 .PHONY : src/CommandHandler.o
@@ -231,33 +258,6 @@ src/RESPParser.cpp.s:
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RESPParser.cpp.s
 .PHONY : src/RESPParser.cpp.s
 
-src/RedisObject.o: src/RedisObject.cpp.o
-
-.PHONY : src/RedisObject.o
-
-# target to build an object file
-src/RedisObject.cpp.o:
-	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RedisObject.cpp.o
-.PHONY : src/RedisObject.cpp.o
-
-src/RedisObject.i: src/RedisObject.cpp.i
-
-.PHONY : src/RedisObject.i
-
-# target to preprocess a source file
-src/RedisObject.cpp.i:
-	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RedisObject.cpp.i
-.PHONY : src/RedisObject.cpp.i
-
-src/RedisObject.s: src/RedisObject.cpp.s
-
-.PHONY : src/RedisObject.s
-
-# target to generate assembly for a file
-src/RedisObject.cpp.s:
-	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RedisObject.cpp.s
-.PHONY : src/RedisObject.cpp.s
-
 src/RedisServer.o: src/RedisServer.cpp.o
 
 .PHONY : src/RedisServer.o
@@ -348,6 +348,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... simple_redis"
+	@echo "... src/AdaptiveCache.o"
+	@echo "... src/AdaptiveCache.i"
+	@echo "... src/AdaptiveCache.s"
 	@echo "... src/CommandHandler.o"
 	@echo "... src/CommandHandler.i"
 	@echo "... src/CommandHandler.s"
@@ -360,9 +363,6 @@ help:
 	@echo "... src/RESPParser.o"
 	@echo "... src/RESPParser.i"
 	@echo "... src/RESPParser.s"
-	@echo "... src/RedisObject.o"
-	@echo "... src/RedisObject.i"
-	@echo "... src/RedisObject.s"
 	@echo "... src/RedisServer.o"
 	@echo "... src/RedisServer.i"
 	@echo "... src/RedisServer.s"

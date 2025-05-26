@@ -9,21 +9,46 @@
 #include <unistd.h>
 #include <iostream>
 #include <cstring>
+#include <sstream>
+#include <thread>
+#include <array>
 
-RedisServer::RedisServer(int port, const std::string& host) 
+RedisServer::RedisServer(int port, const std::string& host, const ThreadPoolConfig& config)
     : port_(port)
     , host_(host)
-    , client_pool_(100, 200) // 预分配128个客户端上下文，最多2000个
-    , readThreadPool(std::thread::hardware_concurrency())
-    , writeThreadPool(std::thread::hardware_concurrency()) {}
-
-RedisServer::~RedisServer() {
-    // 在析构函数中释放资源
-    for (const auto& [fd, client] : clients) {
-        close(fd);
+    , server_fd_(-1)
+    , thread_config_(config)
+    , client_pool_(500, 5000, CLIENT_POOL_SHARDS)  // 增加客户端池容量
+    , readThreadPool(config.read_threads)
+    , writeThreadPool(config.write_threads)
+    , acceptThreadPool(config.accept_threads)
+    , commandThreadPool(config.command_threads)
+{
+    // 预分配连接映射表
+    for (auto& shard : clients_) {
+        shard.reserve(2000);  // 增加预分配空间
     }
     
-    if (server_fd_ >= 0) {
+    for (auto& shard : parsers_) {
+        shard.reserve(2000);  // 增加预分配空间
+    }
+    
+    // 记录启动时间
+    start_time_ = std::chrono::steady_clock::now();
+}
+
+RedisServer::~RedisServer() {
+    // 关闭所有连接
+    for (size_t i = 0; i < CLIENT_SHARD_COUNT; ++i) {
+        std::lock_guard<std::mutex> lock(clients_mutex_[i]);
+        for (const auto& [fd, client] : clients_[i]) {
+            close(fd);
+        }
+        clients_[i].clear();
+    }
+
+    // 关闭服务器socket
+    if (server_fd_ != -1) {
         close(server_fd_);
     }
     
@@ -33,23 +58,121 @@ RedisServer::~RedisServer() {
 }
 
 void RedisServer::add_client(int client_fd) {
-    std::lock_guard<std::mutex> lock(clients_mutex);
-    // 使用客户端池分配ClientContext
-    clients[client_fd] = client_pool_.acquire(client_fd);
+    // 创建客户端上下文
+    auto client = client_pool_.acquire(client_fd);
+    
+    // 计算分片索引
+    size_t shard_idx = client_fd % CLIENT_SHARD_COUNT;
+    
+    // 加锁对应分片
+    std::lock_guard<std::mutex> lock(clients_mutex_[shard_idx]);
+    clients_[shard_idx][client_fd] = std::move(client);
 }
 
 void RedisServer::remove_client(int client_fd) {
-    std::lock_guard<std::mutex> lock(clients_mutex);
-    clients.erase(client_fd);
+    // 计算分片索引
+    size_t shard_idx = client_fd % CLIENT_SHARD_COUNT;
+    
+    // 锁定对应分片
+    {
+        std::lock_guard<std::mutex> lock(clients_mutex_[shard_idx]);
+        clients_[shard_idx].erase(client_fd);
+    }
+    
+    // 清理解析器状态
+    reset_client_parser(client_fd);
+    
+    // 从epoll中移除
+    epoll_ctl(epfd, EPOLL_CTL_DEL, client_fd, nullptr);
+    
+    // 关闭连接
     close(client_fd);
 }
 
 RedisServer::ClientContextPtr RedisServer::get_client(int client_fd) {
-    std::lock_guard<std::mutex> lock(clients_mutex);
-    auto it = clients.find(client_fd);
-    return (it != clients.end()) ? it->second : nullptr;
+    // 计算分片索引
+    size_t shard_idx = client_fd % CLIENT_SHARD_COUNT;
+    
+    // 锁定对应分片
+    std::lock_guard<std::mutex> lock(clients_mutex_[shard_idx]);
+    auto it = clients_[shard_idx].find(client_fd);
+    if (it != clients_[shard_idx].end()) {
+        return it->second;
+    }
+    
+    return nullptr;
 }
 
+// 优化socket参数
+void RedisServer::optimize_socket(int sockfd) {
+    int opt = 1;
+    // 允许地址重用
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt SO_REUSEADDR failed");
+    }
+
+    // 允许端口重用
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt SO_REUSEPORT failed");
+    }
+
+    // 启用TCP_NODELAY，禁用Nagle算法
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt TCP_NODELAY failed");
+    }
+    
+    // 增加TCP的接收和发送缓冲区大小
+    int buf_size = INITIAL_BUFFER_SIZE * 2;  // 128KB
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &buf_size, sizeof(buf_size)) < 0) {
+        perror("setsockopt SO_RCVBUF failed");
+    }
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &buf_size, sizeof(buf_size)) < 0) {
+        perror("setsockopt SO_SNDBUF failed");
+    }
+
+    // 设置TCP_QUICKACK选项
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt TCP_QUICKACK failed");
+    }
+    
+    // 使用TCP_FASTOPEN (如果内核支持)
+    int qlen = 5;  // 队列长度
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_FASTOPEN, &qlen, sizeof(qlen)) < 0) {
+        // 忽略错误，不是所有内核都支持
+    }
+
+    // 启用TCP保活机制
+    if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt SO_KEEPALIVE failed");
+    }
+
+    // 设置TCP保活参数
+    int keepidle = 60;    // 空闲60秒后开始发送保活包
+    int keepintvl = 10;   // 保活包发送间隔10秒
+    int keepcnt = 3;      // 最多发送3次保活包
+
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPIDLE, &keepidle, sizeof(keepidle)) < 0) {
+        perror("setsockopt TCP_KEEPIDLE failed");
+    }
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPINTVL, &keepintvl, sizeof(keepintvl)) < 0) {
+        perror("setsockopt TCP_KEEPINTVL failed");
+    }
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPCNT, &keepcnt, sizeof(keepcnt)) < 0) {
+        perror("setsockopt TCP_KEEPCNT failed");
+    }
+    
+    // 设置为非阻塞模式
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("fcntl F_GETFL failed");
+        return;
+    }
+    if (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        perror("fcntl F_SETFL O_NONBLOCK failed");
+    }
+}
+
+// 服务器启动方法
 void RedisServer::run() {
     // 创建服务器socket
     server_fd_ = socket(AF_INET, SOCK_STREAM, 0);
@@ -58,64 +181,8 @@ void RedisServer::run() {
         return;
     }
 
-    // TCP优化选项
-    int opt = 1;
-    // 允许地址重用
-    if (setsockopt(server_fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        perror("setsockopt SO_REUSEADDR failed");
-        close(server_fd_);
-        return;
-    }
-
-    // 允许端口重用
-    if (setsockopt(server_fd_, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
-        perror("setsockopt SO_REUSEPORT failed");
-        close(server_fd_);
-        return;
-    }
-
-    // 启用TCP_NODELAY，禁用Nagle算法
-    if (setsockopt(server_fd_, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) < 0) {
-        perror("setsockopt TCP_NODELAY failed");
-        close(server_fd_);
-        return;
-    }
-
-    // 设置TCP发送和接收缓冲区大小
-    int buffer_size = INITIAL_BUFFER_SIZE; 
-    if (setsockopt(server_fd_, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size)) < 0) {
-        perror("setsockopt SO_SNDBUF failed");
-        close(server_fd_);
-        return;
-    }
-    if (setsockopt(server_fd_, SOL_SOCKET, SO_RCVBUF, &buffer_size, sizeof(buffer_size)) < 0) {
-        perror("setsockopt SO_RCVBUF failed");
-        close(server_fd_);
-        return;
-    }
-
-    // 启用TCP保活机制
-    int keepalive = 1;
-    if (setsockopt(server_fd_, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)) < 0) {
-        perror("setsockopt SO_KEEPALIVE failed");
-        close(server_fd_);
-        return;
-    }
-
-    // 设置TCP保活参数
-    int keepidle = 60;    // 空闲60秒后开始发送保活包
-    int keepintvl = 10;   // 保活包发送间隔10秒
-    int keepcnt = 3;      // 最多发送3次保活包
-
-    if (setsockopt(server_fd_, IPPROTO_TCP, TCP_KEEPIDLE, &keepidle, sizeof(keepidle)) < 0) {
-        perror("setsockopt TCP_KEEPIDLE failed");
-    }
-    if (setsockopt(server_fd_, IPPROTO_TCP, TCP_KEEPINTVL, &keepintvl, sizeof(keepintvl)) < 0) {
-        perror("setsockopt TCP_KEEPINTVL failed");
-    }
-    if (setsockopt(server_fd_, IPPROTO_TCP, TCP_KEEPCNT, &keepcnt, sizeof(keepcnt)) < 0) {
-        perror("setsockopt TCP_KEEPCNT failed");
-    }
+    // 应用socket优化
+    optimize_socket(server_fd_);
 
     // 绑定地址和端口
     sockaddr_in addr{};
@@ -129,114 +196,195 @@ void RedisServer::run() {
         return;
     }
 
-    // 开始监听
-    if (listen(server_fd_, MAX_EVENTS) < 0) {
+    // 开始监听，增加监听队列长度
+    if (listen(server_fd_, MAX_EVENTS * 2) < 0) {
         perror("listen failed");
         close(server_fd_);
         return;
     }
 
-    // 设置服务器socket为非阻塞模式
-    int flags = fcntl(server_fd_, F_GETFL, 0);
-    if (flags < 0 || fcntl(server_fd_, F_SETFL, flags | O_NONBLOCK) < 0) {
-        perror("fcntl failed");
-        close(server_fd_);
-        return;
-    }
-
     std::cout << "Redis Server running on port " << port_ << std::endl;
+    std::cout << "Thread configuration: " 
+              << "read=" << thread_config_.read_threads 
+              << ", write=" << thread_config_.write_threads 
+              << ", accept=" << thread_config_.accept_threads 
+              << ", command=" << thread_config_.command_threads << std::endl;
 
     // 启动epoll事件循环
     epoll_loop();
 }
 
 void RedisServer::epoll_loop() {
-    epfd = epoll_create1(0);
+    // 创建epoll实例
+    epfd = epoll_create1(EPOLL_CLOEXEC);
+    if (epfd < 0) {
+        perror("epoll_create1 failed");
+        return;
+    }
+    
+    // 注册服务器socket到epoll，使用边缘触发模式
     epoll_event ev{EPOLLIN | EPOLLET, {.fd = server_fd_}};
-    epoll_ctl(epfd, EPOLL_CTL_ADD, server_fd_, &ev);
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, server_fd_, &ev) < 0) {
+        perror("epoll_ctl failed for server socket");
+        close(epfd);
+        return;
+    }
 
-    epoll_event events[MAX_EVENTS];
+    // 预分配事件数组，使用栈内存避免堆分配
+    alignas(64) epoll_event events[MAX_EVENTS];
+    
+    // 定时统计信息
+    auto last_stats_time = std::chrono::steady_clock::now();
+    
+    // 准备多个接受连接事件，避免热点
+    const int ACCEPT_BATCH_SIZE = 4;
+    std::array<bool, ACCEPT_BATCH_SIZE> accept_in_progress{};
+    
+    std::cout << "Event loop started with " << MAX_EVENTS << " max events\n";
+    
     while (true) {
-        int n = epoll_wait(epfd, events, MAX_EVENTS, -1);
+        // 等待事件，-1表示无超时
+        int n = epoll_wait(epfd, events, MAX_EVENTS, 1000); // 1秒超时，用于定时处理
+        
+        if (n < 0) {
+            if (errno == EINTR) continue; // 被信号中断，继续
+            perror("epoll_wait failed");
+            break;
+        }
+        
+        // 批量处理事件
         for (int i = 0; i < n; ++i) {
             int fd = events[i].data.fd;
+            
+            // 服务器socket事件 - 有新连接
             if (fd == server_fd_) {
-                // 处理新连接
-                while (true) {
-                    sockaddr_in cli{};
-                    socklen_t len = sizeof(cli);
-                    int client = accept(server_fd_, (sockaddr*)&cli, &len);
-                    if (client < 0) {
-                        if (errno == EAGAIN || errno == EWOULDBLOCK) break;
-                        perror("accept failed");
+                // 找到一个空闲的accept槽位
+                int slot = -1;
+                for (int j = 0; j < ACCEPT_BATCH_SIZE; ++j) {
+                    if (!accept_in_progress[j]) {
+                        slot = j;
                         break;
                     }
-                    
-                    // 设置客户端socket选项
-                    int opt = 1;
-                    // 启用TCP_NODELAY
-                    if (setsockopt(client, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) < 0) {
-                        perror("client setsockopt TCP_NODELAY failed");
-                    }
-
-                    // 设置发送和接收缓冲区
-                    int buffer_size = INITIAL_BUFFER_SIZE / 2;  // 32KB
-                    if (setsockopt(client, SOL_SOCKET, SO_SNDBUF, &buffer_size, sizeof(buffer_size)) < 0) {
-                        perror("client setsockopt SO_SNDBUF failed");
-                    }
-                    if (setsockopt(client, SOL_SOCKET, SO_RCVBUF, &buffer_size, sizeof(buffer_size)) < 0) {
-                        perror("client setsockopt SO_RCVBUF failed");
-                    }
-
-                    // 启用TCP保活机制
-                    int keepalive = 1;
-                    if (setsockopt(client, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)) < 0) {
-                        perror("client setsockopt SO_KEEPALIVE failed");
-                    }
-                    
-                    // 设置非阻塞
-                    fcntl(client, F_SETFL, O_NONBLOCK);
-                    
-                    // 添加到epoll监听
-                    epoll_event cev{EPOLLIN | EPOLLET, {.fd = client}};
-                    epoll_ctl(epfd, EPOLL_CTL_ADD, client, &cev);
-                    
-                    // 添加到客户端管理
-                    add_client(client);
+                }
+                
+                if (slot >= 0) {
+                    accept_in_progress[slot] = true;
+                    acceptThreadPool.enqueue([this, slot, &accept_in_progress]() {
+                        accept_new_connections();
+                        accept_in_progress[slot] = false;
+                    });
+                } else {
+                    // 所有槽位都忙，直接在当前线程处理
+                    accept_new_connections();
                 }
             } else {
-                // 处理客户端IO事件
-                if (events[i].events & EPOLLIN) {
+                // 客户端事件
+                uint32_t ev_flags = events[i].events;
+                
+                // 可读事件
+                if (ev_flags & EPOLLIN) {
+                    // 读取数据的任务提交给读线程池
                     readThreadPool.enqueue([this, fd]() {
                         handle_read(fd);
                     });
-                    // std::cout << "read:++++++++++++++++++++++++++++++++++++++++++" << std::endl;
-                    // readThreadPool.print_stats(std::cout, true);
                 }
-                if (events[i].events & EPOLLOUT) {
+                
+                // 可写事件
+                if (ev_flags & EPOLLOUT) {
+                    // 写数据的任务提交给写线程池
                     writeThreadPool.enqueue([this, fd]() {
                         handle_write_ready(fd);
                     });
-                    // std::cout << "write:======================================" << std::endl;
-                    // writeThreadPool.print_stats(std::cout, true);
+                }
+                
+                // 错误或挂起事件
+                if ((ev_flags & EPOLLERR) || (ev_flags & EPOLLHUP)) {
+                    // 处理错误或连接关闭
+                    remove_client(fd);
                 }
             }
+        }
+        
+        // 每30秒输出一次统计信息
+        auto now = std::chrono::steady_clock::now();
+        if (std::chrono::duration_cast<std::chrono::seconds>(now - last_stats_time).count() >= 30) {
+            print_stats();
+            last_stats_time = now;
         }
     }
 }
 
+// 批量接受新连接
+void RedisServer::accept_new_connections() {
+    // 使用栈上缓冲区存储新接受的连接
+    int new_clients[MAX_ACCEPT_PER_ROUND];
+    sockaddr_in client_addrs[MAX_ACCEPT_PER_ROUND];
+    socklen_t addr_lens[MAX_ACCEPT_PER_ROUND];
+    
+    int accepted_count = 0;
+    
+    // 预填充地址长度数组
+    std::fill_n(addr_lens, MAX_ACCEPT_PER_ROUND, sizeof(sockaddr_in));
+    
+    // 批量accept循环
+    while (accepted_count < MAX_ACCEPT_PER_ROUND) {
+        sockaddr_in& client_addr = client_addrs[accepted_count];
+        socklen_t& addr_len = addr_lens[accepted_count];
+        
+        // 接受新连接
+        int client_fd = accept4(server_fd_, (sockaddr*)&client_addr, &addr_len, SOCK_NONBLOCK);
+        if (client_fd < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) break;
+            perror("accept4 failed");
+            break;
+        }
+        
+        // 应用socket优化
+        optimize_socket(client_fd);
+        
+        // 存储新连接
+        new_clients[accepted_count++] = client_fd;
+        
+        // 更新连接计数
+        total_connections_++;
+    }
+    
+    if (accepted_count == 0) return;
+    
+    // 批量添加到epoll和客户端映射表
+    for (int i = 0; i < accepted_count; ++i) {
+        int client_fd = new_clients[i];
+        
+        // 添加到epoll监听
+        epoll_event cev{EPOLLIN | EPOLLET, {.fd = client_fd}};
+        if (epoll_ctl(epfd, EPOLL_CTL_ADD, client_fd, &cev) < 0) {
+            perror("epoll_ctl failed for new client");
+            close(client_fd);
+            continue;
+        }
+        
+        // 添加到客户端管理
+        add_client(client_fd);
+    }
+}
+
+// 处理客户端读取事件
 void RedisServer::handle_read(int client_fd) {
     auto client = get_client(client_fd);
     if (!client) {
         return;
     }
 
-    char buffer[DEFAULT_BUFFER_SIZE];
+    // 使用较大的栈上缓冲区，减少堆分配
+    alignas(64) char local_buffer[DEFAULT_BUFFER_SIZE * 2];
+    ssize_t total_bytes_read = 0;
+    bool complete_command_processed = false;
+    
     while (true) {
-        ssize_t n = recv(client_fd, buffer, sizeof(buffer), 0);
+        ssize_t n = recv(client_fd, local_buffer, sizeof(local_buffer), 0);
         if (n < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                break;
+                break; // 没有更多数据可读
             }
             perror("recv failed");
             remove_client(client_fd);
@@ -250,91 +398,118 @@ void RedisServer::handle_read(int client_fd) {
         
         // 更新最后活跃时间
         client->last_active = std::chrono::steady_clock::now();
+        total_bytes_read += n;
 
-        // 调整缓冲区大小
-        if (client->read_pos + n > client->read_buffer.size()) {
-            if (client->read_buffer.size() >= MAX_BUFFER_SIZE) {
-                // 缓冲区已达最大大小，重置
-                reset_client_buffers(client);
-                continue;
+        // 使用字符串视图直接解析数据，避免复制到客户端缓冲区
+        std::string_view direct_view(local_buffer, n);
+        
+        // 获取该客户端对应的解析器
+        auto& parser = get_parser(client_fd);
+        
+        // 尝试直接解析接收到的数据
+        auto direct_cmds = parser.parse(direct_view);
+        
+        // 如果有完整命令，通过命令线程池处理并返回
+        if (!direct_cmds.empty()) {
+            complete_command_processed = true;
+            
+            // 使用命令线程池异步处理命令
+            commandThreadPool.enqueue([this, cmds = std::move(direct_cmds), fd = client_fd]() {
+                process_commands(cmds, fd);
+            });
+        } else {
+            // 没有完整命令，数据需要追加到读缓冲区
+            client->ensure_read_capacity(n);
+            std::copy(local_buffer, local_buffer + n, client->read_buffer.begin() + client->read_pos);
+            client->read_pos += n;
+            
+            // 尝试处理可能已完成的命令
+            if (try_parse_command(client, client_fd)) {
+                complete_command_processed = true;
             }
-            // 扩大缓冲区
-            client->read_buffer.resize(std::min(client->read_buffer.size() * 2, MAX_BUFFER_SIZE));
         }
         
-        // 复制数据到缓冲区
-        std::copy(buffer, buffer + n, client->read_buffer.begin() + client->read_pos);
-        client->read_pos += n;
-        
-        // 尝试解析命令
-        if (try_parse_command(client)) {
-            // 设置写事件监听
-            epoll_event ev{EPOLLOUT | EPOLLET, {.fd = client_fd}};
-            epoll_ctl(epfd, EPOLL_CTL_MOD, client_fd, &ev);
-            client->is_reading = false;
+        // 如果接收缓冲区已满，停止读取
+        if (total_bytes_read >= MAX_BUFFER_SIZE) {
+            break;
         }
+    }
+    
+    // 如果处理过完整命令但仍有未处理的数据，尝试压缩读缓冲区
+    if (complete_command_processed && client->read_pos > 0) {
+        client->compact_read_buffer();
     }
 }
 
-bool RedisServer::try_parse_command(ClientContextPtr client) {
-    try {
-        // 将读缓冲区内容转换为字符串
-        std::string data(client->read_buffer.begin(), client->read_buffer.begin() + client->read_pos);
-        
-        // 尝试解析为Redis命令
-        std::vector<std::vector<std::string>> cmds = RESPParser::parse_multi(data);
-        
-        // 如果有命令，处理它们
-        if (!cmds.empty()) {
-            // 处理多个命令（pipeline）
-            auto results = handler_.handle_pipeline(cmds);
-            
-            // 将结果写入写缓冲区
-            std::string response;
-            for (const auto& result : results) {
-                response += result;
-            }
-            
-            // 调整写缓冲区大小
-            if (client->write_pos + response.size() > client->write_buffer.size()) {
-                if (client->write_buffer.size() >= MAX_BUFFER_SIZE) {
-                    // 缓冲区已达最大大小，重置
-                    reset_client_buffers(client);
-                    return false;
-                }
-                // 扩大写缓冲区
-                client->write_buffer.resize(std::min(client->write_buffer.size() * 2, MAX_BUFFER_SIZE));
-            }
-            
-            // 复制响应到写缓冲区
-            std::copy(response.begin(), response.end(), client->write_buffer.begin() + client->write_pos);
-            client->write_pos += response.size();
-            
-            // 重置读缓冲区
-            client->read_pos = 0;
-            
-            return true;  // 有数据需要写回
-        }
-    } catch (const std::exception& e) {
-        // 解析错误
-        std::string error = "-ERR " + std::string(e.what()) + "\r\n";
-        
-        // 调整写缓冲区大小
-        if (client->write_pos + error.size() > client->write_buffer.size()) {
-            client->write_buffer.resize(std::min(client->write_buffer.size() * 2, MAX_BUFFER_SIZE));
-        }
-        
-        // 写入错误响应
-        std::copy(error.begin(), error.end(), client->write_buffer.begin() + client->write_pos);
-        client->write_pos += error.size();
-        
-        // 重置读缓冲区
-        client->read_pos = 0;
-        
-        return true;  // 有错误需要写回
+// 处理解析出的命令
+void RedisServer::process_commands(const std::vector<std::vector<std::string>>& cmds, int client_fd) {
+    auto client = get_client(client_fd);
+    if (!client) return;
+    
+    // 处理命令并增加计数
+    auto results = handler_.handle_pipeline(cmds);
+    total_commands_ += cmds.size();
+    
+    // 准备响应
+    size_t total_size = 0;
+    for (const auto& result : results) {
+        total_size += result.size();
     }
     
-    return false;  // 没有完整命令
+    // 确保写缓冲区有足够空间
+    client->ensure_write_capacity(total_size);
+    
+    // 一次性构建响应并复制到写缓冲区
+    {
+        std::lock_guard<std::mutex> lock(client->write_mutex);
+        for (const auto& result : results) {
+            std::copy(result.begin(), result.end(), client->write_buffer.begin() + client->write_pos);
+            client->write_pos += result.size();
+        }
+    }
+    
+    // 注册EPOLLOUT事件，表示有数据可写
+    epoll_event ev{EPOLLIN | EPOLLOUT | EPOLLET, {.fd = client_fd}};
+    epoll_ctl(epfd, EPOLL_CTL_MOD, client_fd, &ev);
+}
+
+bool RedisServer::try_parse_command(ClientContextPtr client, int client_fd) {
+    if (client->read_pos == 0) return false;
+    
+    // 使用字符串视图，避免复制数据
+    std::string_view buffer_view(client->read_buffer.data(), client->read_pos);
+    
+    // 获取解析器
+    auto& parser = get_parser(client_fd);
+    
+    // 解析命令
+    auto cmds = parser.parse(buffer_view);
+    if (cmds.empty()) return false;
+    
+    // 处理命令
+    auto results = handler_.handle_pipeline(cmds);
+    
+    // 预计算总响应大小
+    size_t total_size = 0;
+    for (const auto& result : results) {
+        total_size += result.size();
+    }
+    
+    // 准备响应
+    client->ensure_write_capacity(total_size);
+    for (const auto& result : results) {
+        std::copy(result.begin(), result.end(), client->write_buffer.begin() + client->write_pos);
+        client->write_pos += result.size();
+    }
+    
+    // 重置读取位置（由于已经使用字符串视图处理了全部内容）
+    client->read_pos = 0;
+    
+    // 设置EPOLLOUT事件
+    epoll_event ev{EPOLLIN | EPOLLOUT | EPOLLET, {.fd = client_fd}};
+    epoll_ctl(epfd, EPOLL_CTL_MOD, client_fd, &ev);
+    
+    return true;
 }
 
 void RedisServer::handle_write_ready(int client_fd) {
@@ -346,8 +521,18 @@ void RedisServer::handle_write_ready(int client_fd) {
     // 更新最后活跃时间
     client->last_active = std::chrono::steady_clock::now();
 
+    // 使用局部变量存储写入位置，减少锁持有时间
+    size_t write_pos;
+    const char* write_data;
+
+    {
+        std::lock_guard<std::mutex> lock(client->write_mutex);
+        write_pos = client->write_pos;
+        write_data = client->write_buffer.data();
+    }
+
     // 发送数据
-    ssize_t n = send(client_fd, client->write_buffer.data(), client->write_pos, 0);
+    ssize_t n = send(client_fd, write_data, write_pos, MSG_NOSIGNAL);
     if (n < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             return;  // 缓冲区满，稍后重试
@@ -363,22 +548,75 @@ void RedisServer::handle_write_ready(int client_fd) {
     }
     
     // 更新写位置
-    if (static_cast<size_t>(n) < client->write_pos) {
-        // 还有数据未发送完，移动剩余数据
-        std::copy(client->write_buffer.begin() + n, client->write_buffer.begin() + client->write_pos, client->write_buffer.begin());
-        client->write_pos -= n;
-    } else {
-        // 所有数据已发送
-        client->write_pos = 0;
-        
-        // 切换回读取模式
-        client->is_reading = true;
-        epoll_event ev{EPOLLIN | EPOLLET, {.fd = client_fd}};
-        epoll_ctl(epfd, EPOLL_CTL_MOD, client_fd, &ev);
+    {
+        std::lock_guard<std::mutex> lock(client->write_mutex);
+        if (static_cast<size_t>(n) < client->write_pos) {
+            // 还有数据未发送完，移动剩余数据
+            std::copy(client->write_buffer.begin() + n, client->write_buffer.begin() + client->write_pos, client->write_buffer.begin());
+            client->write_pos -= n;
+        } else {
+            // 所有数据已发送
+            client->write_pos = 0;
+            
+            // 切换回读取模式
+            client->is_reading = true;
+            epoll_event ev{EPOLLIN | EPOLLET, {.fd = client_fd}};
+            epoll_ctl(epfd, EPOLL_CTL_MOD, client_fd, &ev);
+        }
     }
 }
 
 void RedisServer::reset_client_buffers(ClientContextPtr client) {
     client->read_pos = 0;
     client->write_pos = 0;
+}
+
+void RedisServer::reset_client_parser(int client_fd) {
+    // 计算分片索引
+    size_t shard_idx = client_fd % CLIENT_PARSER_SHARD_COUNT;
+    
+    // 锁定对应分片
+    std::lock_guard<std::mutex> lock(parsers_mutex_[shard_idx]);
+    parsers_[shard_idx].erase(client_fd);
+}
+
+RESPParser& RedisServer::get_parser(int client_fd) {
+    // 计算分片索引
+    size_t shard_idx = client_fd % CLIENT_PARSER_SHARD_COUNT;
+    
+    // 锁定对应分片
+    std::lock_guard<std::mutex> lock(parsers_mutex_[shard_idx]);
+    auto it = parsers_[shard_idx].find(client_fd);
+    if (it == parsers_[shard_idx].end()) {
+        // 创建新解析器并绑定到连接
+        auto [new_it, inserted] = parsers_[shard_idx].emplace(client_fd, RESPParser());
+        return new_it->second;
+    }
+    return it->second;
+}
+
+// 输出服务器统计信息
+void RedisServer::print_stats() {
+    auto now = std::chrono::steady_clock::now();
+    auto uptime = std::chrono::duration_cast<std::chrono::seconds>(now - start_time_).count();
+    
+    std::cout << "\n=== Server Stats ===\n";
+    std::cout << "Uptime: " << uptime << " seconds\n";
+    std::cout << "Total connections: " << total_connections_.load() << "\n";
+    std::cout << "Total commands: " << total_commands_.load() << "\n";
+    
+    // 计算QPS
+    double qps = static_cast<double>(total_commands_) / uptime;
+    std::cout << "Commands per second: " << qps << "\n";
+    
+    // 当前连接数
+    size_t current_connections = 0;
+    for (size_t i = 0; i < CLIENT_SHARD_COUNT; ++i) {
+        std::lock_guard<std::mutex> lock(clients_mutex_[i]);
+        current_connections += clients_[i].size();
+    }
+    std::cout << "Current connections: " << current_connections << "\n";
+    
+    // 缓存命中率等更多信息可以在这里添加
+    std::cout << "=====================\n";
 }
