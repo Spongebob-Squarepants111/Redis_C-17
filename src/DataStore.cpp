@@ -285,17 +285,17 @@ void DataStore::persist_shard(size_t shard_index) {
         for (size_t submap_idx = 0; submap_idx < Bucket::SUB_MAPS_COUNT; ++submap_idx) {
             auto& submap = bucket->sub_maps[submap_idx];
             std::shared_lock<std::shared_mutex> lock(submap.mutex);
-            
+        
             for (const auto& [key, value] : submap.store) {
-                // 写入key长度和value长度
-                uint32_t key_size = key.size();
-                uint32_t value_size = value.size();
-                file.write(reinterpret_cast<char*>(&key_size), sizeof(key_size));
-                file.write(reinterpret_cast<char*>(&value_size), sizeof(value_size));
-                
-                // 写入key和value
-                file.write(key.data(), key_size);
-                file.write(value.data(), value_size);
+            // 写入key长度和value长度
+            uint32_t key_size = key.size();
+            uint32_t value_size = value.size();
+            file.write(reinterpret_cast<char*>(&key_size), sizeof(key_size));
+            file.write(reinterpret_cast<char*>(&value_size), sizeof(value_size));
+            
+            // 写入key和value
+            file.write(key.data(), key_size);
+            file.write(value.data(), value_size);
             }
         }
     }
