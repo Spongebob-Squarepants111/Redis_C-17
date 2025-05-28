@@ -13,7 +13,7 @@ namespace Logo {
 ╚═╝  ╚═╝╚══════╝╚═════╝ ╚═╝╚══════╝
 
             REDIS SERVER
-   https://github.com/Spongebob-Squarepants111/Redis_C-17
+   https://github.com/Spongebob-Squarepants111/Redis_C-17.git
 )" << std::endl;
     }
 } 
