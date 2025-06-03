@@ -348,8 +348,7 @@ public:
             
             // 正常压缩：将未处理的数据移到缓冲区开头
             if (read_pos > 0) {
-                // 源和目标是同一个缓冲区，使用memmove防止重叠
-                std::memmove(read_buffer.data(), read_buffer.data(), read_pos);
+                std::memmove(read_buffer.data(), read_buffer.data() + read_pos, read_pos);
             }
         }
     };

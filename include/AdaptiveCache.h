@@ -54,9 +54,9 @@ public:
         // 构造函数，设置默认值
         Options() 
             : shard_count(16)
-            , initial_capacity(10000)
-            , min_capacity(1000)
-            , max_capacity(1000000)
+            , initial_capacity(100000)
+            , min_capacity(10000)
+            , max_capacity(10000000)
             , policy_type(CachePolicy::Type::LRU)
             , adjustment_interval(std::chrono::minutes(5))
             , memory_pool_block_size(4096)
