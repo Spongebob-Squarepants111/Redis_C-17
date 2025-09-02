@@ -25,8 +25,18 @@ set(SRCS
 add_executable(simple_redis ${SRCS})
 
 # 优化选项
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -flto -DNDEBUG -fno-rtti")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
+
+# 启用LTO (Link Time Optimization)
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ipo_supported OUTPUT ipo_output)
+if(ipo_supported)
+    message(STATUS "LTO/IPO is supported, enabling for Release builds")
+    set_property(TARGET simple_redis PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+    message(WARNING "LTO/IPO is not supported: ${ipo_output}")
+endif()
 
 # 默认使用Release构建类型
 if(NOT CMAKE_BUILD_TYPE)

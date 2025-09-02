@@ -26,7 +26,15 @@ RedisServer::RedisServer(const Config& config)
     
     datastore_ = std::make_shared<DataStore>(ds_options);
     handler_ = std::make_shared<CommandHandler>(datastore_);
-    worker_pool_ = std::make_unique<ThreadPool>(config.worker_threads, handler_);
+    
+    // 配置线程池选项，启用CPU亲和性
+    ThreadPool::Options pool_options;
+    pool_options.enable_cpu_affinity = true;
+    pool_options.auto_detect_topology = true;
+    // 可以根据需要自定义CPU分配
+    // pool_options.custom_cpu_assignment = {0, 1, 2, 3, ...};
+    
+    worker_pool_ = std::make_unique<ThreadPool>(config.worker_threads, handler_, pool_options);
     
     start_time_ = std::chrono::steady_clock::now();
 }

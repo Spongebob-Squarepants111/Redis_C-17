@@ -8,19 +8,25 @@
 #include <sys/epoll.h>
 #include "RESPParser.h"
 #include "CommandHandler.h"
+#include "ThreadAffinity.h"
 
 // 统一分片常量
 constexpr size_t OPTIMAL_SHARD_COUNT = 16;
 
 class WorkerThread {
 public:
-    WorkerThread(int worker_id, std::shared_ptr<CommandHandler> handler);
+    WorkerThread(int worker_id, std::shared_ptr<CommandHandler> handler, int cpu_id = -1);
     ~WorkerThread();
     
     void start();
     void stop();
     void add_client(int client_fd);
     void remove_client(int client_fd);
+    
+    // 线程亲和性相关
+    void set_cpu_affinity(int cpu_id);
+    int get_cpu_affinity() const { return cpu_id_; }
+    bool is_affinity_enabled() const { return cpu_id_ >= 0; }
     
     // 统计信息
     size_t get_client_count() const { return client_count_.load(); }
@@ -33,6 +39,7 @@ private:
     void send_response(int client_fd, const std::string& response);
     
     int worker_id_;
+    int cpu_id_;  // CPU亲和性绑定的核心ID (-1表示未绑定)
     std::thread worker_thread_;
     std::atomic<bool> running_{false};
     
@@ -64,7 +71,15 @@ private:
 
 class ThreadPool {
 public:
+    // 构造函数选项
+    struct Options {
+        bool enable_cpu_affinity = true;    // 是否启用CPU亲和性
+        bool auto_detect_topology = true;   // 是否自动检测CPU拓扑
+        std::vector<int> custom_cpu_assignment; // 自定义CPU分配
+    };
+    
     ThreadPool(size_t worker_count, std::shared_ptr<CommandHandler> handler);
+    ThreadPool(size_t worker_count, std::shared_ptr<CommandHandler> handler, const Options& options);
     ~ThreadPool();
     
     void start();
@@ -74,12 +89,18 @@ public:
     void assign_client(int client_fd);
     void remove_client(int client_fd);
     
+    // CPU亲和性管理
+    void enable_cpu_affinity(bool enable);
+    bool is_cpu_affinity_enabled() const { return options_.enable_cpu_affinity; }
+    void print_cpu_assignment() const;
+    
     // 统计信息
     struct Stats {
         size_t total_clients;
         uint64_t total_commands;
         std::vector<size_t> worker_clients;
         std::vector<uint64_t> worker_commands;
+        std::vector<int> worker_cpu_assignments; // 工作线程CPU分配
     };
     
     Stats get_stats() const;
@@ -88,8 +109,13 @@ private:
     std::vector<std::unique_ptr<WorkerThread>> workers_;
     std::atomic<size_t> current_worker_{0};  // 轮询分配
     std::shared_ptr<CommandHandler> handler_;
+    Options options_;  // 线程池选项
+    std::vector<int> cpu_assignments_;  // CPU分配方案
     
     // 客户端到Worker的映射
     std::unordered_map<int, int> client_to_worker_;
     std::mutex mapping_mutex_;
+    
+    // 初始化CPU分配
+    void initialize_cpu_assignment(size_t worker_count);
 };

@@ -20,6 +20,10 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/share/cmake-3.16/Modules/CMakeSystemSpecificInformation.cmake"
   "/usr/share/cmake-3.16/Modules/CMakeSystemSpecificInitialize.cmake"
   "/usr/share/cmake-3.16/Modules/CheckCXXSourceCompiles.cmake"
+  "/usr/share/cmake-3.16/Modules/CheckIPOSupported.cmake"
+  "/usr/share/cmake-3.16/Modules/CheckIPOSupported/CMakeLists-CXX.txt.in"
+  "/usr/share/cmake-3.16/Modules/CheckIPOSupported/foo.cpp"
+  "/usr/share/cmake-3.16/Modules/CheckIPOSupported/main.cpp"
   "/usr/share/cmake-3.16/Modules/CheckIncludeFileCXX.cmake"
   "/usr/share/cmake-3.16/Modules/CheckLibraryExists.cmake"
   "/usr/share/cmake-3.16/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
@@ -45,6 +49,9 @@ set(CMAKE_MAKEFILE_OUTPUTS
 
 # Byproducts of CMake generate step:
 set(CMAKE_MAKEFILE_PRODUCTS
+  "CMakeFiles/_CMakeLTOTest-CXX/src/CMakeLists.txt"
+  "CMakeFiles/_CMakeLTOTest-CXX/src/foo.cpp"
+  "CMakeFiles/_CMakeLTOTest-CXX/src/main.cpp"
   "config.ini"
   "CMakeFiles/CMakeDirectoryInformation.cmake"
   )

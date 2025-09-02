@@ -21,6 +21,7 @@ CMakeFiles/simple_redis.dir/src/Config.cpp.o: ../include/DataStore.h
 CMakeFiles/simple_redis.dir/src/Config.cpp.o: ../include/MemoryPool.h
 CMakeFiles/simple_redis.dir/src/Config.cpp.o: ../include/RESPParser.h
 CMakeFiles/simple_redis.dir/src/Config.cpp.o: ../include/RedisServer.h
+CMakeFiles/simple_redis.dir/src/Config.cpp.o: ../include/ThreadAffinity.h
 CMakeFiles/simple_redis.dir/src/Config.cpp.o: ../include/ThreadPool.h
 CMakeFiles/simple_redis.dir/src/Config.cpp.o: ../src/Config.cpp
 
@@ -40,6 +41,7 @@ CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/DataStore.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/MemoryPool.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/RESPParser.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/RedisServer.h
+CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/ThreadAffinity.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/ThreadPool.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../src/RedisServer.cpp
 
@@ -49,6 +51,7 @@ CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o: ../include/CommandHandler.h
 CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o: ../include/DataStore.h
 CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o: ../include/MemoryPool.h
 CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o: ../include/RESPParser.h
+CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o: ../include/ThreadAffinity.h
 CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o: ../include/ThreadPool.h
 CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o: ../src/ThreadPool.cpp
 
@@ -61,6 +64,7 @@ CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/Logo.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/MemoryPool.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/RESPParser.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/RedisServer.h
+CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/ThreadAffinity.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/ThreadPool.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../src/main.cpp
 

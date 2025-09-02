@@ -42,7 +42,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g -O0 -DDEBUG  "
+					"fragment" : "-g -O0 -DDEBUG -flto -fno-fat-lto-objects  "
 				},
 				{
 					"fragment" : "-std=c++17"
@@ -75,7 +75,7 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "-g -O0 -DDEBUG",
+				"fragment" : "-g -O0 -DDEBUG -flto -fno-fat-lto-objects",
 				"role" : "flags"
 			},
 			{
@@ -95,7 +95,8 @@
 				"role" : "libraries"
 			}
 		],
-		"language" : "CXX"
+		"language" : "CXX",
+		"lto" : true
 	},
 	"name" : "simple_redis",
 	"nameOnDisk" : "simple_redis",

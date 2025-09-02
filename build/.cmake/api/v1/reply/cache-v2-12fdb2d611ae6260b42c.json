@@ -1126,6 +1126,18 @@
 			"value" : "/usr/lib/x86_64-linux-gnu/libz.so"
 		},
 		{
+			"name" : "result",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Result of TRY_COMPILE"
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : "TRUE"
+		},
+		{
 			"name" : "simple_redis_BINARY_DIR",
 			"properties" : 
 			[

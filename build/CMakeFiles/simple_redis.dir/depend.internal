@@ -22,6 +22,7 @@ CMakeFiles/simple_redis.dir/src/Config.cpp.o
  ../include/MemoryPool.h
  ../include/RESPParser.h
  ../include/RedisServer.h
+ ../include/ThreadAffinity.h
  ../include/ThreadPool.h
  /root/C++_Projects/simple_redis/src/Config.cpp
 CMakeFiles/simple_redis.dir/src/DataStore.cpp.o
@@ -41,6 +42,7 @@ CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o
  ../include/MemoryPool.h
  ../include/RESPParser.h
  ../include/RedisServer.h
+ ../include/ThreadAffinity.h
  ../include/ThreadPool.h
  /root/C++_Projects/simple_redis/src/RedisServer.cpp
 CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o
@@ -50,6 +52,7 @@ CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o
  ../include/DataStore.h
  ../include/MemoryPool.h
  ../include/RESPParser.h
+ ../include/ThreadAffinity.h
  ../include/ThreadPool.h
  /root/C++_Projects/simple_redis/src/ThreadPool.cpp
 CMakeFiles/simple_redis.dir/src/main.cpp.o
@@ -62,5 +65,6 @@ CMakeFiles/simple_redis.dir/src/main.cpp.o
  ../include/MemoryPool.h
  ../include/RESPParser.h
  ../include/RedisServer.h
+ ../include/ThreadAffinity.h
  ../include/ThreadPool.h
  /root/C++_Projects/simple_redis/src/main.cpp

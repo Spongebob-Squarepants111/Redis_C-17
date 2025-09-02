@@ -10,8 +10,8 @@
 #include <cerrno>
 
 // WorkerThread实现
-WorkerThread::WorkerThread(int worker_id, std::shared_ptr<CommandHandler> handler)
-    : worker_id_(worker_id), handler_(handler) {
+WorkerThread::WorkerThread(int worker_id, std::shared_ptr<CommandHandler> handler, int cpu_id)
+    : worker_id_(worker_id), cpu_id_(cpu_id), handler_(handler) {
     
     // 创建epoll实例
     epoll_fd_ = epoll_create1(EPOLL_CLOEXEC);
@@ -27,9 +27,18 @@ WorkerThread::~WorkerThread() {
     }
 }
 
+void WorkerThread::set_cpu_affinity(int cpu_id) {
+    cpu_id_ = cpu_id;
+}
+
 void WorkerThread::start() {
     running_ = true;
     worker_thread_ = std::thread(&WorkerThread::worker_loop, this);
+    
+    // 设置CPU亲和性
+    if (cpu_id_ >= 0) {
+        ThreadAffinity::bind_thread_to_cpu(worker_thread_, cpu_id_);
+    }
 }
 
 void WorkerThread::stop() {
@@ -81,6 +90,13 @@ void WorkerThread::remove_client(int client_fd) {
 }
 
 void WorkerThread::worker_loop() {
+    // 在工作线程内部也设置CPU亲和性（双重保险）
+    if (cpu_id_ >= 0) {
+        ThreadAffinity::bind_current_thread_to_cpu(cpu_id_);
+        // 设置更高的调度优先级（可选）
+        ThreadAffinity::set_thread_priority(0, 0);  // 0 = SCHED_NORMAL
+    }
+    
     constexpr int MAX_EVENTS = 256;
     epoll_event events[MAX_EVENTS];
     
@@ -166,11 +182,26 @@ void WorkerThread::send_response(int client_fd, const std::string& response) {
 
 // WorkerThreadPool实现
 ThreadPool::ThreadPool(size_t worker_count, std::shared_ptr<CommandHandler> handler)
-    : handler_(handler) {
+    : ThreadPool(worker_count, handler, Options{}) {
+}
+
+ThreadPool::ThreadPool(size_t worker_count, std::shared_ptr<CommandHandler> handler, const Options& options)
+    : handler_(handler), options_(options) {
+    
+    // 初始化CPU分配方案
+    initialize_cpu_assignment(worker_count);
     
     workers_.reserve(worker_count);
     for (size_t i = 0; i < worker_count; ++i) {
-        workers_.emplace_back(std::make_unique<WorkerThread>(i, handler));
+        int cpu_id = options_.enable_cpu_affinity ? cpu_assignments_[i] : -1;
+        workers_.emplace_back(std::make_unique<WorkerThread>(i, handler, cpu_id));
+    }
+    
+    // 打印CPU分配信息
+    if (options_.enable_cpu_affinity) {
+        std::cout << "Thread Pool CPU Affinity Configuration:" << std::endl;
+        ThreadAffinity::print_system_info();
+        print_cpu_assignment();
     }
 }
 
@@ -225,13 +256,55 @@ ThreadPool::Stats ThreadPool::get_stats() const {
     stats.total_commands = 0;
     stats.worker_clients.resize(workers_.size());
     stats.worker_commands.resize(workers_.size());
+    stats.worker_cpu_assignments.resize(workers_.size());
     
     for (size_t i = 0; i < workers_.size(); ++i) {
         stats.worker_clients[i] = workers_[i]->get_client_count();
         stats.worker_commands[i] = workers_[i]->get_processed_commands();
+        stats.worker_cpu_assignments[i] = workers_[i]->get_cpu_affinity();
         stats.total_clients += stats.worker_clients[i];
         stats.total_commands += stats.worker_commands[i];
     }
     
     return stats;
+}
+
+void ThreadPool::initialize_cpu_assignment(size_t worker_count) {
+    if (options_.enable_cpu_affinity) {
+        if (!options_.custom_cpu_assignment.empty()) {
+            // 使用自定义CPU分配
+            cpu_assignments_ = options_.custom_cpu_assignment;
+            cpu_assignments_.resize(worker_count); // 确保大小匹配
+        } else if (options_.auto_detect_topology) {
+            // 自动检测最优分配
+            cpu_assignments_ = ThreadAffinity::calculate_optimal_cpu_assignment(worker_count);
+        } else {
+            // 简单的轮询分配
+            unsigned int cpu_count = ThreadAffinity::get_cpu_count();
+            cpu_assignments_.resize(worker_count);
+            for (size_t i = 0; i < worker_count; ++i) {
+                cpu_assignments_[i] = static_cast<int>(i % cpu_count);
+            }
+        }
+    } else {
+        // 不启用CPU亲和性
+        cpu_assignments_.resize(worker_count, -1);
+    }
+}
+
+void ThreadPool::enable_cpu_affinity(bool enable) {
+    options_.enable_cpu_affinity = enable;
+    // 注意：这个方法只在重启线程池后生效
+    std::cout << "CPU affinity " << (enable ? "enabled" : "disabled") 
+              << ". Restart required for changes to take effect." << std::endl;
+}
+
+void ThreadPool::print_cpu_assignment() const {
+    std::cout << "Worker Thread CPU Assignments:" << std::endl;
+    for (size_t i = 0; i < workers_.size(); ++i) {
+        int cpu_id = workers_[i]->get_cpu_affinity();
+        std::cout << "  Worker " << i << " -> CPU " 
+                  << (cpu_id >= 0 ? std::to_string(cpu_id) : "Not bound") << std::endl;
+    }
+    std::cout << std::endl;
 }

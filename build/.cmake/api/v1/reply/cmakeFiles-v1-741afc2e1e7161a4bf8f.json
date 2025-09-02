@@ -93,6 +93,26 @@
 			"path" : "/usr/share/cmake-3.16/Modules/CMakeCommonLanguageInclude.cmake"
 		},
 		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.16/Modules/CheckIPOSupported.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.16/Modules/CheckIPOSupported/CMakeLists-CXX.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.16/Modules/CheckIPOSupported/foo.cpp"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/usr/share/cmake-3.16/Modules/CheckIPOSupported/main.cpp"
+		},
+		{
 			"path" : "config.ini"
 		},
 		{
