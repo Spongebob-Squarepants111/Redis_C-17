@@ -60,106 +60,106 @@ include CMakeFiles/simple_redis.dir/flags.make
 CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.o: CMakeFiles/simple_redis.dir/flags.make
 CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.o: ../src/AdaptiveCache.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/root/C++_Projects/simple_redis/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.o"
-	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.o -c /root/C++_Projects/simple_redis/src/AdaptiveCache.cpp
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.o -c /root/C++_Projects/simple_redis/src/AdaptiveCache.cpp
 
 CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/AdaptiveCache.cpp > CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/AdaptiveCache.cpp > CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.i
 
 CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/AdaptiveCache.cpp -o CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/AdaptiveCache.cpp -o CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.s
 
 CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.o: CMakeFiles/simple_redis.dir/flags.make
 CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.o: ../src/CommandHandler.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/root/C++_Projects/simple_redis/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.o"
-	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.o -c /root/C++_Projects/simple_redis/src/CommandHandler.cpp
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.o -c /root/C++_Projects/simple_redis/src/CommandHandler.cpp
 
 CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/CommandHandler.cpp > CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/CommandHandler.cpp > CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.i
 
 CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/CommandHandler.cpp -o CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/CommandHandler.cpp -o CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.s
 
 CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o: CMakeFiles/simple_redis.dir/flags.make
 CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o: ../src/ConfigLoader.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/root/C++_Projects/simple_redis/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o"
-	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o -c /root/C++_Projects/simple_redis/src/ConfigLoader.cpp
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o -c /root/C++_Projects/simple_redis/src/ConfigLoader.cpp
 
 CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/ConfigLoader.cpp > CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/ConfigLoader.cpp > CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.i
 
 CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/ConfigLoader.cpp -o CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/ConfigLoader.cpp -o CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.s
 
 CMakeFiles/simple_redis.dir/src/DataStore.cpp.o: CMakeFiles/simple_redis.dir/flags.make
 CMakeFiles/simple_redis.dir/src/DataStore.cpp.o: ../src/DataStore.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/root/C++_Projects/simple_redis/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/simple_redis.dir/src/DataStore.cpp.o"
-	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/DataStore.cpp.o -c /root/C++_Projects/simple_redis/src/DataStore.cpp
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/DataStore.cpp.o -c /root/C++_Projects/simple_redis/src/DataStore.cpp
 
 CMakeFiles/simple_redis.dir/src/DataStore.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/simple_redis.dir/src/DataStore.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/DataStore.cpp > CMakeFiles/simple_redis.dir/src/DataStore.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/DataStore.cpp > CMakeFiles/simple_redis.dir/src/DataStore.cpp.i
 
 CMakeFiles/simple_redis.dir/src/DataStore.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_redis.dir/src/DataStore.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/DataStore.cpp -o CMakeFiles/simple_redis.dir/src/DataStore.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/DataStore.cpp -o CMakeFiles/simple_redis.dir/src/DataStore.cpp.s
 
 CMakeFiles/simple_redis.dir/src/main.cpp.o: CMakeFiles/simple_redis.dir/flags.make
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../src/main.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/root/C++_Projects/simple_redis/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/simple_redis.dir/src/main.cpp.o"
-	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/main.cpp.o -c /root/C++_Projects/simple_redis/src/main.cpp
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/main.cpp.o -c /root/C++_Projects/simple_redis/src/main.cpp
 
 CMakeFiles/simple_redis.dir/src/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/simple_redis.dir/src/main.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/main.cpp > CMakeFiles/simple_redis.dir/src/main.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/main.cpp > CMakeFiles/simple_redis.dir/src/main.cpp.i
 
 CMakeFiles/simple_redis.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_redis.dir/src/main.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/main.cpp -o CMakeFiles/simple_redis.dir/src/main.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/main.cpp -o CMakeFiles/simple_redis.dir/src/main.cpp.s
 
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: CMakeFiles/simple_redis.dir/flags.make
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../src/RedisServer.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/root/C++_Projects/simple_redis/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o"
-	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o -c /root/C++_Projects/simple_redis/src/RedisServer.cpp
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o -c /root/C++_Projects/simple_redis/src/RedisServer.cpp
 
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/simple_redis.dir/src/RedisServer.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/RedisServer.cpp > CMakeFiles/simple_redis.dir/src/RedisServer.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/RedisServer.cpp > CMakeFiles/simple_redis.dir/src/RedisServer.cpp.i
 
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_redis.dir/src/RedisServer.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/RedisServer.cpp -o CMakeFiles/simple_redis.dir/src/RedisServer.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/RedisServer.cpp -o CMakeFiles/simple_redis.dir/src/RedisServer.cpp.s
 
 CMakeFiles/simple_redis.dir/src/RESPParser.cpp.o: CMakeFiles/simple_redis.dir/flags.make
 CMakeFiles/simple_redis.dir/src/RESPParser.cpp.o: ../src/RESPParser.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/root/C++_Projects/simple_redis/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/simple_redis.dir/src/RESPParser.cpp.o"
-	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/RESPParser.cpp.o -c /root/C++_Projects/simple_redis/src/RESPParser.cpp
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/RESPParser.cpp.o -c /root/C++_Projects/simple_redis/src/RESPParser.cpp
 
 CMakeFiles/simple_redis.dir/src/RESPParser.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/simple_redis.dir/src/RESPParser.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/RESPParser.cpp > CMakeFiles/simple_redis.dir/src/RESPParser.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/RESPParser.cpp > CMakeFiles/simple_redis.dir/src/RESPParser.cpp.i
 
 CMakeFiles/simple_redis.dir/src/RESPParser.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_redis.dir/src/RESPParser.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/RESPParser.cpp -o CMakeFiles/simple_redis.dir/src/RESPParser.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/RESPParser.cpp -o CMakeFiles/simple_redis.dir/src/RESPParser.cpp.s
 
 CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o: CMakeFiles/simple_redis.dir/flags.make
 CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o: ../src/ThreadPool.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/root/C++_Projects/simple_redis/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o"
-	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o -c /root/C++_Projects/simple_redis/src/ThreadPool.cpp
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o -c /root/C++_Projects/simple_redis/src/ThreadPool.cpp
 
 CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/ThreadPool.cpp > CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /root/C++_Projects/simple_redis/src/ThreadPool.cpp > CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.i
 
 CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/ThreadPool.cpp -o CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /root/C++_Projects/simple_redis/src/ThreadPool.cpp -o CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.s
 
 # Object files for target simple_redis
 simple_redis_OBJECTS = \
