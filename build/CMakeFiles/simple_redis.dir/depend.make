@@ -13,6 +13,11 @@ CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.o: ../include/DataStore.h
 CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.o: ../include/MemoryPool.h
 CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.o: ../src/CommandHandler.cpp
 
+CMakeFiles/simple_redis.dir/src/Config.cpp.o: ../include/CachePolicy.h
+CMakeFiles/simple_redis.dir/src/Config.cpp.o: ../include/Config.h
+CMakeFiles/simple_redis.dir/src/Config.cpp.o: ../include/ConfigLoader.h
+CMakeFiles/simple_redis.dir/src/Config.cpp.o: ../src/Config.cpp
+
 CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o: ../include/ConfigLoader.h
 CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o: ../src/ConfigLoader.cpp
 
@@ -29,6 +34,8 @@ CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/AdaptiveCache.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/CachePolicy.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/ClientContextPool.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/CommandHandler.h
+CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/Config.h
+CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/ConfigLoader.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/DataStore.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/MemoryPool.h
 CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o: ../include/RESPParser.h
@@ -43,6 +50,7 @@ CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/AdaptiveCache.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/CachePolicy.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/ClientContextPool.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/CommandHandler.h
+CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/Config.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/ConfigLoader.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/DataStore.h
 CMakeFiles/simple_redis.dir/src/main.cpp.o: ../include/Logo.h

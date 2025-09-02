@@ -2,6 +2,7 @@
 #include <string>
 #include <chrono>
 #include <cstdint>
+#include <memory>
 
 // 缓存项的基类，记录基本的缓存指标
 class CacheItemMetrics {

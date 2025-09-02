@@ -4,14 +4,9 @@ project(simple_redis LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# —— 查找 liburing 依赖（通过 pkg-config） ——
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBURING REQUIRED liburing)
-
 # 包含头文件目录
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
-    ${LIBURING_INCLUDE_DIRS}    # liburing 的头文件路径
 )
 
 # 源文件列表
@@ -21,6 +16,7 @@ file(GLOB SRCS src/*.cpp)
 set(EXPLICIT_SRCS
     src/AdaptiveCache.cpp
     src/CommandHandler.cpp
+    src/Config.cpp
     src/ConfigLoader.cpp
     src/DataStore.cpp
     src/main.cpp
@@ -29,8 +25,23 @@ set(EXPLICIT_SRCS
     src/ThreadPool.cpp
 )
 
+# 优化版源文件
+set(OPTIMIZED_SRCS
+    src/AdaptiveCache.cpp
+    src/CommandHandler.cpp
+    src/DataStore.cpp
+    src/RESPParser.cpp
+    src/WorkerThreadPool.cpp
+    src/OptimizedRedisServer.cpp
+    src/SimpleConfig.cpp
+    src/main_optimized.cpp
+)
+
 # 生成可执行文件
 add_executable(simple_redis ${EXPLICIT_SRCS})
+
+# 生成优化版可执行文件
+add_executable(simple_redis_optimized ${OPTIMIZED_SRCS})
 
 # 优化选项
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -DNDEBUG")
@@ -48,32 +59,36 @@ configure_file(
   COPYONLY
 )
 
-# 链接线程库和 liburing
+# 链接线程库
 find_package(Threads REQUIRED)
-target_link_libraries(simple_redis
-    PRIVATE
-      Threads::Threads         # pthread
-      ${LIBURING_LIBRARIES}    # -luring
-)
-
-# 链接器搜索路径（可选，仅当找不到库时使用）
-link_directories(${LIBURING_LIBRARY_DIRS})
 
 # 添加压缩库和哈希库依赖
 find_package(ZLIB REQUIRED)
 
-# 添加到target_link_libraries
+# 链接所有依赖库
 target_link_libraries(simple_redis
     PRIVATE
     ${ZLIB_LIBRARIES}
     xxhash
     Threads::Threads
-    ${LIBURING_LIBRARIES}
+)
+
+# 为优化版链接依赖库
+target_link_libraries(simple_redis_optimized
+    PRIVATE
+    ${ZLIB_LIBRARIES}
+    xxhash
+    Threads::Threads
 )
 
 # 包含头文件目录
 target_include_directories(simple_redis
     PRIVATE
     ${PROJECT_SOURCE_DIR}/include
-    ${LIBURING_INCLUDE_DIRS}
+)
+
+# 为优化版添加头文件目录
+target_include_directories(simple_redis_optimized
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
 )

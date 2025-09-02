@@ -13,16 +13,18 @@
 #include <thread>
 #include <array>
 
-RedisServer::RedisServer(int port, const std::string& host, const ThreadPoolConfig& config)
-    : port_(port)
-    , host_(host)
+RedisServer::RedisServer(const Config& config)
+    : config_(config)
     , server_fd_(-1)
-    , thread_config_(config)
-    , client_pool_(500, 5000, CLIENT_POOL_SHARDS)  // 增加客户端池容量
-    , readThreadPool(config.read_threads)
-    , writeThreadPool(config.write_threads)
-    , acceptThreadPool(config.accept_threads)
-    , commandThreadPool(config.command_threads)
+    , client_pool_(500, 5000, config.server().client_pool_shards)
+    , clients_(config.server().client_shard_count)
+    , clients_mutex_(config.server().client_shard_count)
+    , parsers_(config.server().client_parser_shard_count)
+    , parsers_mutex_(config.server().client_parser_shard_count)
+    , readThreadPool(config.thread_pool().read_threads)
+    , writeThreadPool(config.thread_pool().write_threads)
+    , acceptThreadPool(config.thread_pool().accept_threads)
+    , commandThreadPool(config.thread_pool().command_threads)
 {
     // 预分配连接映射表
     for (auto& shard : clients_) {
@@ -39,7 +41,7 @@ RedisServer::RedisServer(int port, const std::string& host, const ThreadPoolConf
 
 RedisServer::~RedisServer() {
     // 关闭所有连接
-    for (size_t i = 0; i < CLIENT_SHARD_COUNT; ++i) {
+    for (size_t i = 0; i < clients_.size(); ++i) {
         std::lock_guard<std::mutex> lock(clients_mutex_[i]);
         for (const auto& [fd, client] : clients_[i]) {
             close(fd);
@@ -62,7 +64,7 @@ void RedisServer::add_client(int client_fd) {
     auto client = client_pool_.acquire(client_fd);
     
     // 计算分片索引
-    size_t shard_idx = client_fd % CLIENT_SHARD_COUNT;
+    size_t shard_idx = client_fd % config_.server().client_shard_count;
     
     // 加锁对应分片
     std::lock_guard<std::mutex> lock(clients_mutex_[shard_idx]);
@@ -71,7 +73,7 @@ void RedisServer::add_client(int client_fd) {
 
 void RedisServer::remove_client(int client_fd) {
     // 计算分片索引
-    size_t shard_idx = client_fd % CLIENT_SHARD_COUNT;
+    size_t shard_idx = client_fd % config_.server().client_shard_count;
     
     // 锁定对应分片
     {
@@ -91,7 +93,7 @@ void RedisServer::remove_client(int client_fd) {
 
 RedisServer::ClientContextPtr RedisServer::get_client(int client_fd) {
     // 计算分片索引
-    size_t shard_idx = client_fd % CLIENT_SHARD_COUNT;
+    size_t shard_idx = client_fd % config_.server().client_shard_count;
     
     // 锁定对应分片
     std::lock_guard<std::mutex> lock(clients_mutex_[shard_idx]);
@@ -122,7 +124,7 @@ void RedisServer::optimize_socket(int sockfd) {
     }
     
     // 增加TCP的接收和发送缓冲区大小
-    int buf_size = INITIAL_BUFFER_SIZE * 2;  // 128KB
+    int buf_size = config_.server().initial_buffer_size * 2;
     if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &buf_size, sizeof(buf_size)) < 0) {
         perror("setsockopt SO_RCVBUF failed");
     }
@@ -187,8 +189,8 @@ void RedisServer::run() {
     // 绑定地址和端口
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = inet_addr(host_.c_str());
-    addr.sin_port = htons(port_);
+    addr.sin_addr.s_addr = inet_addr(config_.server().host.c_str());
+    addr.sin_port = htons(config_.server().port);
 
     if (bind(server_fd_, (sockaddr*)&addr, sizeof(addr)) < 0) {
         perror("bind failed");
@@ -197,18 +199,18 @@ void RedisServer::run() {
     }
 
     // 开始监听，增加监听队列长度
-    if (listen(server_fd_, MAX_EVENTS * 2) < 0) {
+    if (listen(server_fd_, config_.server().max_events) < 0) {
         perror("listen failed");
         close(server_fd_);
         return;
     }
 
-    std::cout << "Redis Server running on port " << port_ << std::endl;
+    std::cout << "Redis Server running on " << config_.server().host << ":" << config_.server().port << std::endl;
     std::cout << "Thread configuration: " 
-              << "read=" << thread_config_.read_threads 
-              << ", write=" << thread_config_.write_threads 
-              << ", accept=" << thread_config_.accept_threads 
-              << ", command=" << thread_config_.command_threads << std::endl;
+              << "read=" << config_.thread_pool().read_threads 
+              << ", write=" << config_.thread_pool().write_threads 
+              << ", accept=" << config_.thread_pool().accept_threads 
+              << ", command=" << config_.thread_pool().command_threads << std::endl;
 
     // 启动epoll事件循环
     epoll_loop();
@@ -231,7 +233,7 @@ void RedisServer::epoll_loop() {
     }
 
     // 预分配事件数组，使用栈内存避免堆分配
-    alignas(64) epoll_event events[MAX_EVENTS];
+    std::vector<epoll_event> events(config_.server().max_events);
     
     // 定时统计信息
     auto last_stats_time = std::chrono::steady_clock::now();
@@ -240,11 +242,11 @@ void RedisServer::epoll_loop() {
     const int ACCEPT_BATCH_SIZE = 4;
     std::array<bool, ACCEPT_BATCH_SIZE> accept_in_progress{};
     
-    std::cout << "Event loop started with " << MAX_EVENTS << " max events\n";
+    std::cout << "Event loop started with " << config_.server().max_events << " max events\n";
     
     while (true) {
         // 等待事件，-1表示无超时
-        int n = epoll_wait(epfd, events, MAX_EVENTS, 1000); // 1秒超时，用于定时处理
+        int n = epoll_wait(epfd, events.data(), config_.server().max_events, 1000); // 1秒超时，用于定时处理
         
         if (n < 0) {
             if (errno == EINTR) continue; // 被信号中断，继续
@@ -317,17 +319,17 @@ void RedisServer::epoll_loop() {
 // 批量接受新连接
 void RedisServer::accept_new_connections() {
     // 使用栈上缓冲区存储新接受的连接
-    int new_clients[MAX_ACCEPT_PER_ROUND];
-    sockaddr_in client_addrs[MAX_ACCEPT_PER_ROUND];
-    socklen_t addr_lens[MAX_ACCEPT_PER_ROUND];
+    std::vector<int> new_clients(config_.server().max_accept_per_round);
+    std::vector<sockaddr_in> client_addrs(config_.server().max_accept_per_round);
+    std::vector<socklen_t> addr_lens(config_.server().max_accept_per_round);
     
     int accepted_count = 0;
     
     // 预填充地址长度数组
-    std::fill_n(addr_lens, MAX_ACCEPT_PER_ROUND, sizeof(sockaddr_in));
+    std::fill(addr_lens.begin(), addr_lens.end(), sizeof(sockaddr_in));
     
     // 批量accept循环
-    while (accepted_count < MAX_ACCEPT_PER_ROUND) {
+    while (accepted_count < config_.server().max_accept_per_round) {
         sockaddr_in& client_addr = client_addrs[accepted_count];
         socklen_t& addr_len = addr_lens[accepted_count];
         
@@ -376,12 +378,12 @@ void RedisServer::handle_read(int client_fd) {
     }
 
     // 使用较大的栈上缓冲区，减少堆分配
-    alignas(64) char local_buffer[DEFAULT_BUFFER_SIZE * 2];
+    std::vector<char> local_buffer(config_.server().default_buffer_size * 2);
     ssize_t total_bytes_read = 0;
     bool complete_command_processed = false;
     
     while (true) {
-        ssize_t n = recv(client_fd, local_buffer, sizeof(local_buffer), 0);
+        ssize_t n = recv(client_fd, local_buffer.data(), local_buffer.size(), 0);
         if (n < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 break; // 没有更多数据可读
@@ -401,7 +403,7 @@ void RedisServer::handle_read(int client_fd) {
         total_bytes_read += n;
 
         // 使用字符串视图直接解析数据，避免复制到客户端缓冲区
-        std::string_view direct_view(local_buffer, n);
+        std::string_view direct_view(local_buffer.data(), n);
         
         // 获取该客户端对应的解析器
         auto& parser = get_parser(client_fd);
@@ -420,7 +422,7 @@ void RedisServer::handle_read(int client_fd) {
         } else {
             // 没有完整命令，数据需要追加到读缓冲区
             client->ensure_read_capacity(n);
-            std::copy(local_buffer, local_buffer + n, client->read_buffer.begin() + client->read_pos);
+            std::copy(local_buffer.data(), local_buffer.data() + n, client->read_buffer.begin() + client->read_pos);
             client->read_pos += n;
             
             // 尝试处理可能已完成的命令
@@ -430,7 +432,7 @@ void RedisServer::handle_read(int client_fd) {
         }
         
         // 如果接收缓冲区已满，停止读取
-        if (total_bytes_read >= MAX_BUFFER_SIZE) {
+        if (total_bytes_read >= config_.server().max_buffer_size) {
             break;
         }
     }
@@ -573,7 +575,7 @@ void RedisServer::reset_client_buffers(ClientContextPtr client) {
 
 void RedisServer::reset_client_parser(int client_fd) {
     // 计算分片索引
-    size_t shard_idx = client_fd % CLIENT_PARSER_SHARD_COUNT;
+    size_t shard_idx = client_fd % config_.server().client_parser_shard_count;
     
     // 锁定对应分片
     std::lock_guard<std::mutex> lock(parsers_mutex_[shard_idx]);
@@ -582,7 +584,7 @@ void RedisServer::reset_client_parser(int client_fd) {
 
 RESPParser& RedisServer::get_parser(int client_fd) {
     // 计算分片索引
-    size_t shard_idx = client_fd % CLIENT_PARSER_SHARD_COUNT;
+    size_t shard_idx = client_fd % config_.server().client_parser_shard_count;
     
     // 锁定对应分片
     std::lock_guard<std::mutex> lock(parsers_mutex_[shard_idx]);
@@ -611,7 +613,7 @@ void RedisServer::print_stats() {
     
     // 当前连接数
     size_t current_connections = 0;
-    for (size_t i = 0; i < CLIENT_SHARD_COUNT; ++i) {
+    for (size_t i = 0; i < clients_.size(); ++i) {
         std::lock_guard<std::mutex> lock(clients_mutex_[i]);
         current_connections += clients_[i].size();
     }

@@ -61,7 +61,13 @@
         "any": "cpp",
         "map": "cpp",
         "set": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "ranges": "cpp",
+        "stop_token": "cpp",
+        "bitset": "cpp",
+        "unordered_set": "cpp"
     },
     "C_Cpp.default.cppStandard": "c++17",
     "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",

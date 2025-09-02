@@ -53,6 +53,7 @@ CMAKE_BINARY_DIR = /root/C++_Projects/simple_redis/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
+all: CMakeFiles/simple_redis_optimized.dir/all
 all: CMakeFiles/simple_redis.dir/all
 
 .PHONY : all
@@ -63,9 +64,37 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
+clean: CMakeFiles/simple_redis_optimized.dir/clean
 clean: CMakeFiles/simple_redis.dir/clean
 
 .PHONY : clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/simple_redis_optimized.dir
+
+# All Build rule for target.
+CMakeFiles/simple_redis_optimized.dir/all:
+	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/depend
+	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/root/C++_Projects/simple_redis/build/CMakeFiles --progress-num=11,12,13,14,15,16,17,18,19 "Built target simple_redis_optimized"
+.PHONY : CMakeFiles/simple_redis_optimized.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/simple_redis_optimized.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /root/C++_Projects/simple_redis/build/CMakeFiles 9
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/simple_redis_optimized.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /root/C++_Projects/simple_redis/build/CMakeFiles 0
+.PHONY : CMakeFiles/simple_redis_optimized.dir/rule
+
+# Convenience name for target.
+simple_redis_optimized: CMakeFiles/simple_redis_optimized.dir/rule
+
+.PHONY : simple_redis_optimized
+
+# clean rule for target.
+CMakeFiles/simple_redis_optimized.dir/clean:
+	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/clean
+.PHONY : CMakeFiles/simple_redis_optimized.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/simple_redis.dir
@@ -74,12 +103,12 @@ clean: CMakeFiles/simple_redis.dir/clean
 CMakeFiles/simple_redis.dir/all:
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/depend
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/root/C++_Projects/simple_redis/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Built target simple_redis"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/root/C++_Projects/simple_redis/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10 "Built target simple_redis"
 .PHONY : CMakeFiles/simple_redis.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/simple_redis.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /root/C++_Projects/simple_redis/build/CMakeFiles 9
+	$(CMAKE_COMMAND) -E cmake_progress_start /root/C++_Projects/simple_redis/build/CMakeFiles 10
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/simple_redis.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /root/C++_Projects/simple_redis/build/CMakeFiles 0
 .PHONY : CMakeFiles/simple_redis.dir/rule
