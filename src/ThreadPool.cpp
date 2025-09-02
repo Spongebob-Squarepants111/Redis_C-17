@@ -1,143 +1,237 @@
 #include "ThreadPool.h"
+#include <sys/socket.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <netinet/tcp.h>
+#include <netinet/in.h>
+#include <iostream>
+#include <algorithm>
+#include <cstring>
+#include <cerrno>
 
-ThreadPool::ThreadPool(size_t initial_threads)
-    : thread_config_{
-        .min_threads = std::max<size_t>(2, initial_threads/2),
-        .max_threads = initial_threads * 2
-      } {
-    resize_thread_pool(initial_threads);
+// WorkerThread实现
+WorkerThread::WorkerThread(int worker_id, std::shared_ptr<CommandHandler> handler)
+    : worker_id_(worker_id), handler_(handler) {
+    
+    // 创建epoll实例
+    epoll_fd_ = epoll_create1(EPOLL_CLOEXEC);
+    if (epoll_fd_ < 0) {
+        throw std::runtime_error("Failed to create epoll instance for worker " + std::to_string(worker_id));
+    }
 }
 
-ThreadPool::~ThreadPool() {
-    shutdown();
+WorkerThread::~WorkerThread() {
+    stop();
+    if (epoll_fd_ >= 0) {
+        close(epoll_fd_);
+    }
 }
 
-ThreadPool::PerformanceStats ThreadPool::get_stats() const {
-    // 获取当前待处理任务数
-    size_t pending = 0;
+void WorkerThread::start() {
+    running_ = true;
+    worker_thread_ = std::thread(&WorkerThread::worker_loop, this);
+}
+
+void WorkerThread::stop() {
+    running_ = false;
+    if (worker_thread_.joinable()) {
+        worker_thread_.join();
+    }
+    
+    // 关闭所有客户端连接
+    std::lock_guard<std::mutex> lock(clients_mutex_);
+    for (const auto& [fd, client] : clients_) {
+        close(fd);
+    }
+    clients_.clear();
+}
+
+void WorkerThread::add_client(int client_fd) {
+    // 设置非阻塞
+    int flags = fcntl(client_fd, F_GETFL, 0);
+    fcntl(client_fd, F_SETFL, flags | O_NONBLOCK);
+    
+    // 设置TCP_NODELAY
+    int opt = 1;
+    setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt));
+    
+    // 添加到epoll
+    epoll_event ev{EPOLLIN | EPOLLET, {.fd = client_fd}};
+    if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, client_fd, &ev) < 0) {
+        close(client_fd);
+        return;
+    }
+    
+    // 创建客户端信息
+    {
+        std::lock_guard<std::mutex> lock(clients_mutex_);
+        clients_[client_fd] = std::make_unique<ClientInfo>();
+        client_count_++;
+    }
+}
+
+void WorkerThread::remove_client(int client_fd) {
+    epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, client_fd, nullptr);
+    close(client_fd);
+    
+    std::lock_guard<std::mutex> lock(clients_mutex_);
+    if (clients_.erase(client_fd) > 0) {
+        client_count_--;
+    }
+}
+
+void WorkerThread::worker_loop() {
+    constexpr int MAX_EVENTS = 256;
+    epoll_event events[MAX_EVENTS];
+    
+    while (running_) {
+        int n = epoll_wait(epoll_fd_, events, MAX_EVENTS, 100); // 100ms超时
+        
+        if (n < 0) {
+            if (errno == EINTR) continue;
+            break;
+        }
+        
+        // 处理事件
+        for (int i = 0; i < n; ++i) {
+            handle_client_event(events[i].data.fd, events[i].events);
+        }
+    }
+}
+
+void WorkerThread::handle_client_event(int client_fd, uint32_t events) {
+    if (events & (EPOLLERR | EPOLLHUP)) {
+        remove_client(client_fd);
+        return;
+    }
+    
+    if (events & EPOLLIN) {
+        process_client_data(client_fd);
+    }
+    
+    if (events & EPOLLOUT) {
+        // 处理写事件（如果需要）
+    }
+}
+
+void WorkerThread::process_client_data(int client_fd) {
+    std::unique_ptr<ClientInfo>* client_ptr = nullptr;
     
     {
-        std::lock_guard<std::mutex> lock(queue_mutex);
-        pending = tasks.size();
+        std::lock_guard<std::mutex> lock(clients_mutex_);
+        auto it = clients_.find(client_fd);
+        if (it == clients_.end()) return;
+        client_ptr = &it->second;
     }
     
-    // 计算运行时间(秒)
-    auto now = std::chrono::steady_clock::now();
-    double uptime = std::chrono::duration<double>(now - metrics_.start_time).count();
+    auto& client = **client_ptr;
     
-    // 计算每秒处理任务数
-    size_t completed = metrics_.completed_tasks.load();
-    size_t tasks_per_sec = uptime > 0 ? static_cast<size_t>(completed / uptime) : 0;
-    
-    return {
-        metrics_.total_tasks,
-        metrics_.completed_tasks,
-        metrics_.avg_processing_time,
-        active_threads_,
-        workers_.size(),
-        pending,
-        metrics_.peak_active_threads.load(),
-        metrics_.min_processing_time.load(),
-        metrics_.max_processing_time.load(),
-        metrics_.start_time,
-        uptime,
-        tasks_per_sec
-    };
-}
-
-void ThreadPool::shutdown() {
-    stop_ = true;
-    cv.notify_all();
-    for (auto& worker : workers_) {
-        if (worker.joinable()) {
-            worker.join();
+    // 读取数据
+    char buffer[4096];
+    while (true) {
+        ssize_t n = recv(client_fd, buffer, sizeof(buffer), 0);
+        if (n < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) break;
+            remove_client(client_fd);
+            return;
         }
-    }
-}
-
-size_t ThreadPool::pending_tasks() const noexcept {
-    std::lock_guard<std::mutex> lock(queue_mutex);
-    return tasks.size();
-}
-
-void ThreadPool::check_and_adjust_thread_count() {
-    size_t current_threads = workers_.size();
-    size_t active = active_threads_.load();
-    size_t pending = pending_tasks();
-    
-    size_t target_threads = current_threads;
-    if (active == current_threads && pending > current_threads) {
-        // 所有线程都很忙，且还有待处理任务，增加线程
-        target_threads = std::min(current_threads + 2, thread_config_.max_threads);
-    } else if (active < current_threads / 2 && current_threads > thread_config_.min_threads) {
-        // 超过一半的线程空闲，减少线程
-        target_threads = std::max(current_threads - 1, thread_config_.min_threads);
-    }
-    
-    if (target_threads != current_threads) {
-        resize_thread_pool(target_threads);
-    }
-}
-
-void ThreadPool::resize_thread_pool(size_t target_size) {
-    size_t current = workers_.size();
-    if (target_size > current) {
-        // 增加线程
-        for (size_t i = current; i < target_size; ++i) {
-            workers_.emplace_back([this] { worker_thread(); });
-            worker_metrics_.emplace_back();
+        if (n == 0) {
+            remove_client(client_fd);
+            return;
         }
-    }
-    // 减少线程通过自然退出实现
-}
-
-void ThreadPool::worker_thread() {
-    while (!stop_) {
-        std::function<void()> task;
-        bool got_task = false;
         
-        // 从队列获取任务
-        {
-            std::unique_lock<std::mutex> lock(queue_mutex);
-            
-            // 等待任务或超时
-            cv.wait_for(lock, 
-                std::chrono::milliseconds(100), 
-                [this] { 
-                    return stop_ || !tasks.empty(); 
-                });
-            
-            // 检查是否有任务可执行
-            if (!tasks.empty()) {
-                task = std::move(tasks.front());
-                tasks.pop();
-                got_task = true;
+        // 解析命令
+        std::string_view data(buffer, n);
+        auto commands = client.parser.parse(data);
+        
+        // 处理命令
+        for (const auto& cmd : commands) {
+            if (!cmd.empty()) {
+                std::string response = handler_->handle(cmd);
+                send_response(client_fd, response);
+                processed_commands_++;
             }
         }
         
-        // 如果获取到任务，执行它
-        if (got_task) {
-            active_threads_++;
-            // 更新峰值活跃线程数
-            metrics_.update_peak_threads(active_threads_.load());
-            
-            auto start = std::chrono::steady_clock::now();
-            
-            task();
-            
-            auto end = std::chrono::steady_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
-                end - start).count();
-            
-            metrics_.update_processing_time(duration);
-            metrics_.completed_tasks++;
-            active_threads_--;
-            
-            // 检查是否需要调整线程池大小
-            check_and_adjust_thread_count();
-        } else if (!stop_) {
-            // 如果队列为空，短暂休眠避免CPU空转
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        client.last_active = std::chrono::steady_clock::now();
+    }
+}
+
+void WorkerThread::send_response(int client_fd, const std::string& response) {
+    ssize_t sent = send(client_fd, response.data(), response.size(), MSG_NOSIGNAL);
+    if (sent < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
+        remove_client(client_fd);
+    }
+}
+
+// WorkerThreadPool实现
+ThreadPool::ThreadPool(size_t worker_count, std::shared_ptr<CommandHandler> handler)
+    : handler_(handler) {
+    
+    workers_.reserve(worker_count);
+    for (size_t i = 0; i < worker_count; ++i) {
+        workers_.emplace_back(std::make_unique<WorkerThread>(i, handler));
+    }
+}
+
+ThreadPool::~ThreadPool() {
+    stop();
+}
+
+void ThreadPool::start() {
+    for (auto& worker : workers_) {
+        worker->start();
+    }
+}
+
+void ThreadPool::stop() {
+    for (auto& worker : workers_) {
+        worker->stop();
+    }
+}
+
+void ThreadPool::assign_client(int client_fd) {
+    // 负载均衡：选择客户端数量最少的Worker
+    size_t best_worker = 0;
+    size_t min_clients = workers_[0]->get_client_count();
+    
+    for (size_t i = 1; i < workers_.size(); ++i) {
+        size_t count = workers_[i]->get_client_count();
+        if (count < min_clients) {
+            min_clients = count;
+            best_worker = i;
         }
     }
+    
+    workers_[best_worker]->add_client(client_fd);
+    
+    // 记录映射关系
+    std::lock_guard<std::mutex> lock(mapping_mutex_);
+    client_to_worker_[client_fd] = best_worker;
+}
+
+void ThreadPool::remove_client(int client_fd) {
+    std::lock_guard<std::mutex> lock(mapping_mutex_);
+    auto it = client_to_worker_.find(client_fd);
+    if (it != client_to_worker_.end()) {
+        workers_[it->second]->remove_client(client_fd);
+        client_to_worker_.erase(it);
+    }
+}
+
+ThreadPool::Stats ThreadPool::get_stats() const {
+    Stats stats;
+    stats.total_clients = 0;
+    stats.total_commands = 0;
+    stats.worker_clients.resize(workers_.size());
+    stats.worker_commands.resize(workers_.size());
+    
+    for (size_t i = 0; i < workers_.size(); ++i) {
+        stats.worker_clients[i] = workers_[i]->get_client_count();
+        stats.worker_commands[i] = workers_[i]->get_processed_commands();
+        stats.total_clients += stats.worker_clients[i];
+        stats.total_commands += stats.worker_commands[i];
+    }
+    
+    return stats;
 }

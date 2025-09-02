@@ -1,46 +1,6 @@
 [
 {
   "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis_optimized.dir/src/AdaptiveCache.cpp.o -c /root/C++_Projects/simple_redis/src/AdaptiveCache.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/AdaptiveCache.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis_optimized.dir/src/CommandHandler.cpp.o -c /root/C++_Projects/simple_redis/src/CommandHandler.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/CommandHandler.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis_optimized.dir/src/DataStore.cpp.o -c /root/C++_Projects/simple_redis/src/DataStore.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/DataStore.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis_optimized.dir/src/RESPParser.cpp.o -c /root/C++_Projects/simple_redis/src/RESPParser.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/RESPParser.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis_optimized.dir/src/WorkerThreadPool.cpp.o -c /root/C++_Projects/simple_redis/src/WorkerThreadPool.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/WorkerThreadPool.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis_optimized.dir/src/OptimizedRedisServer.cpp.o -c /root/C++_Projects/simple_redis/src/OptimizedRedisServer.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/OptimizedRedisServer.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis_optimized.dir/src/SimpleConfig.cpp.o -c /root/C++_Projects/simple_redis/src/SimpleConfig.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/SimpleConfig.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis_optimized.dir/src/main_optimized.cpp.o -c /root/C++_Projects/simple_redis/src/main_optimized.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/main_optimized.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
   "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.o -c /root/C++_Projects/simple_redis/src/AdaptiveCache.cpp",
   "file": "/root/C++_Projects/simple_redis/src/AdaptiveCache.cpp"
 },
@@ -51,28 +11,8 @@
 },
 {
   "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/Config.cpp.o -c /root/C++_Projects/simple_redis/src/Config.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/Config.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o -c /root/C++_Projects/simple_redis/src/ConfigLoader.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/ConfigLoader.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
   "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/DataStore.cpp.o -c /root/C++_Projects/simple_redis/src/DataStore.cpp",
   "file": "/root/C++_Projects/simple_redis/src/DataStore.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/main.cpp.o -c /root/C++_Projects/simple_redis/src/main.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/main.cpp"
-},
-{
-  "directory": "/root/C++_Projects/simple_redis/build",
-  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o -c /root/C++_Projects/simple_redis/src/RedisServer.cpp",
-  "file": "/root/C++_Projects/simple_redis/src/RedisServer.cpp"
 },
 {
   "directory": "/root/C++_Projects/simple_redis/build",
@@ -83,5 +23,20 @@
   "directory": "/root/C++_Projects/simple_redis/build",
   "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.o -c /root/C++_Projects/simple_redis/src/ThreadPool.cpp",
   "file": "/root/C++_Projects/simple_redis/src/ThreadPool.cpp"
+},
+{
+  "directory": "/root/C++_Projects/simple_redis/build",
+  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o -c /root/C++_Projects/simple_redis/src/RedisServer.cpp",
+  "file": "/root/C++_Projects/simple_redis/src/RedisServer.cpp"
+},
+{
+  "directory": "/root/C++_Projects/simple_redis/build",
+  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/Config.cpp.o -c /root/C++_Projects/simple_redis/src/Config.cpp",
+  "file": "/root/C++_Projects/simple_redis/src/Config.cpp"
+},
+{
+  "directory": "/root/C++_Projects/simple_redis/build",
+  "command": "/usr/bin/g++   -I/root/C++_Projects/simple_redis/include  -g -O0 -DDEBUG   -std=c++17 -o CMakeFiles/simple_redis.dir/src/main.cpp.o -c /root/C++_Projects/simple_redis/src/main.cpp",
+  "file": "/root/C++_Projects/simple_redis/src/main.cpp"
 }
 ]

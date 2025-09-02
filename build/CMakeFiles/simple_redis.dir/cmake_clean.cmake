@@ -2,7 +2,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.o"
   "CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.o"
   "CMakeFiles/simple_redis.dir/src/Config.cpp.o"
-  "CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o"
   "CMakeFiles/simple_redis.dir/src/DataStore.cpp.o"
   "CMakeFiles/simple_redis.dir/src/RESPParser.cpp.o"
   "CMakeFiles/simple_redis.dir/src/RedisServer.cpp.o"

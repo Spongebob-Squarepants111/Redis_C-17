@@ -1,21 +1,21 @@
 Performing C++ SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
 Change Dir: /root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_a6a43/fast && /usr/bin/make -f CMakeFiles/cmTC_a6a43.dir/build.make CMakeFiles/cmTC_a6a43.dir/build
+Run Build Command(s):/usr/bin/make cmTC_92aab/fast && /usr/bin/make -f CMakeFiles/cmTC_92aab.dir/build.make CMakeFiles/cmTC_92aab.dir/build
 make[1]: Entering directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_a6a43.dir/src.cxx.o
-/usr/bin/g++    -DCMAKE_HAVE_LIBC_PTHREAD   -std=c++17 -o CMakeFiles/cmTC_a6a43.dir/src.cxx.o -c /root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp/src.cxx
-Linking CXX executable cmTC_a6a43
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a6a43.dir/link.txt --verbose=1
-/usr/bin/g++   -DCMAKE_HAVE_LIBC_PTHREAD    CMakeFiles/cmTC_a6a43.dir/src.cxx.o  -o cmTC_a6a43 
-/usr/bin/ld: CMakeFiles/cmTC_a6a43.dir/src.cxx.o: in function `main':
+Building CXX object CMakeFiles/cmTC_92aab.dir/src.cxx.o
+/usr/bin/g++    -DCMAKE_HAVE_LIBC_PTHREAD   -std=c++17 -o CMakeFiles/cmTC_92aab.dir/src.cxx.o -c /root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_92aab
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_92aab.dir/link.txt --verbose=1
+/usr/bin/g++   -DCMAKE_HAVE_LIBC_PTHREAD    CMakeFiles/cmTC_92aab.dir/src.cxx.o  -o cmTC_92aab 
+/usr/bin/ld: CMakeFiles/cmTC_92aab.dir/src.cxx.o: in function `main':
 src.cxx:(.text+0x46): undefined reference to `pthread_create'
 /usr/bin/ld: src.cxx:(.text+0x52): undefined reference to `pthread_detach'
 /usr/bin/ld: src.cxx:(.text+0x63): undefined reference to `pthread_join'
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_a6a43.dir/build.make:87: cmTC_a6a43] Error 1
+make[1]: *** [CMakeFiles/cmTC_92aab.dir/build.make:87: cmTC_92aab] Error 1
 make[1]: Leaving directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
-make: *** [Makefile:121: cmTC_a6a43/fast] Error 2
+make: *** [Makefile:121: cmTC_92aab/fast] Error 2
 
 
 Source file was:
@@ -41,18 +41,18 @@ int main(void)
 Determining if the function pthread_create exists in the pthreads failed with the following output:
 Change Dir: /root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/make cmTC_190cd/fast && /usr/bin/make -f CMakeFiles/cmTC_190cd.dir/build.make CMakeFiles/cmTC_190cd.dir/build
+Run Build Command(s):/usr/bin/make cmTC_a55f8/fast && /usr/bin/make -f CMakeFiles/cmTC_a55f8.dir/build.make CMakeFiles/cmTC_a55f8.dir/build
 make[1]: Entering directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_190cd.dir/CheckFunctionExists.cxx.o
-/usr/bin/g++    -DCHECK_FUNCTION_EXISTS=pthread_create   -std=c++17 -o CMakeFiles/cmTC_190cd.dir/CheckFunctionExists.cxx.o -c /root/C++_Projects/simple_redis/build/CMakeFiles/CheckLibraryExists/CheckFunctionExists.cxx
-Linking CXX executable cmTC_190cd
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_190cd.dir/link.txt --verbose=1
-/usr/bin/g++   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_190cd.dir/CheckFunctionExists.cxx.o  -o cmTC_190cd  -lpthreads 
+Building CXX object CMakeFiles/cmTC_a55f8.dir/CheckFunctionExists.cxx.o
+/usr/bin/g++    -DCHECK_FUNCTION_EXISTS=pthread_create   -std=c++17 -o CMakeFiles/cmTC_a55f8.dir/CheckFunctionExists.cxx.o -c /root/C++_Projects/simple_redis/build/CMakeFiles/CheckLibraryExists/CheckFunctionExists.cxx
+Linking CXX executable cmTC_a55f8
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a55f8.dir/link.txt --verbose=1
+/usr/bin/g++   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_a55f8.dir/CheckFunctionExists.cxx.o  -o cmTC_a55f8  -lpthreads 
 /usr/bin/ld: cannot find -lpthreads
 collect2: error: ld returned 1 exit status
-make[1]: *** [CMakeFiles/cmTC_190cd.dir/build.make:87: cmTC_190cd] Error 1
+make[1]: *** [CMakeFiles/cmTC_a55f8.dir/build.make:87: cmTC_a55f8] Error 1
 make[1]: Leaving directory '/root/C++_Projects/simple_redis/build/CMakeFiles/CMakeTmp'
-make: *** [Makefile:121: cmTC_190cd/fast] Error 2
+make: *** [Makefile:121: cmTC_a55f8/fast] Error 2
 
 
 

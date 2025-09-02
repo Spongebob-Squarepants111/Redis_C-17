@@ -111,19 +111,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named simple_redis_optimized
-
-# Build rule for target.
-simple_redis_optimized: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 simple_redis_optimized
-.PHONY : simple_redis_optimized
-
-# fast build rule for target.
-simple_redis_optimized/fast:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/build
-.PHONY : simple_redis_optimized/fast
-
-#=============================================================================
 # Target rules for targets named simple_redis
 
 # Build rule for target.
@@ -142,7 +129,6 @@ src/AdaptiveCache.o: src/AdaptiveCache.cpp.o
 
 # target to build an object file
 src/AdaptiveCache.cpp.o:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/AdaptiveCache.cpp.o
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.o
 .PHONY : src/AdaptiveCache.cpp.o
 
@@ -152,7 +138,6 @@ src/AdaptiveCache.i: src/AdaptiveCache.cpp.i
 
 # target to preprocess a source file
 src/AdaptiveCache.cpp.i:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/AdaptiveCache.cpp.i
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.i
 .PHONY : src/AdaptiveCache.cpp.i
 
@@ -162,7 +147,6 @@ src/AdaptiveCache.s: src/AdaptiveCache.cpp.s
 
 # target to generate assembly for a file
 src/AdaptiveCache.cpp.s:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/AdaptiveCache.cpp.s
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/AdaptiveCache.cpp.s
 .PHONY : src/AdaptiveCache.cpp.s
 
@@ -172,7 +156,6 @@ src/CommandHandler.o: src/CommandHandler.cpp.o
 
 # target to build an object file
 src/CommandHandler.cpp.o:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/CommandHandler.cpp.o
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.o
 .PHONY : src/CommandHandler.cpp.o
 
@@ -182,7 +165,6 @@ src/CommandHandler.i: src/CommandHandler.cpp.i
 
 # target to preprocess a source file
 src/CommandHandler.cpp.i:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/CommandHandler.cpp.i
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.i
 .PHONY : src/CommandHandler.cpp.i
 
@@ -192,7 +174,6 @@ src/CommandHandler.s: src/CommandHandler.cpp.s
 
 # target to generate assembly for a file
 src/CommandHandler.cpp.s:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/CommandHandler.cpp.s
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/CommandHandler.cpp.s
 .PHONY : src/CommandHandler.cpp.s
 
@@ -223,40 +204,12 @@ src/Config.cpp.s:
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/Config.cpp.s
 .PHONY : src/Config.cpp.s
 
-src/ConfigLoader.o: src/ConfigLoader.cpp.o
-
-.PHONY : src/ConfigLoader.o
-
-# target to build an object file
-src/ConfigLoader.cpp.o:
-	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.o
-.PHONY : src/ConfigLoader.cpp.o
-
-src/ConfigLoader.i: src/ConfigLoader.cpp.i
-
-.PHONY : src/ConfigLoader.i
-
-# target to preprocess a source file
-src/ConfigLoader.cpp.i:
-	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.i
-.PHONY : src/ConfigLoader.cpp.i
-
-src/ConfigLoader.s: src/ConfigLoader.cpp.s
-
-.PHONY : src/ConfigLoader.s
-
-# target to generate assembly for a file
-src/ConfigLoader.cpp.s:
-	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/ConfigLoader.cpp.s
-.PHONY : src/ConfigLoader.cpp.s
-
 src/DataStore.o: src/DataStore.cpp.o
 
 .PHONY : src/DataStore.o
 
 # target to build an object file
 src/DataStore.cpp.o:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/DataStore.cpp.o
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/DataStore.cpp.o
 .PHONY : src/DataStore.cpp.o
 
@@ -266,7 +219,6 @@ src/DataStore.i: src/DataStore.cpp.i
 
 # target to preprocess a source file
 src/DataStore.cpp.i:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/DataStore.cpp.i
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/DataStore.cpp.i
 .PHONY : src/DataStore.cpp.i
 
@@ -276,36 +228,8 @@ src/DataStore.s: src/DataStore.cpp.s
 
 # target to generate assembly for a file
 src/DataStore.cpp.s:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/DataStore.cpp.s
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/DataStore.cpp.s
 .PHONY : src/DataStore.cpp.s
-
-src/OptimizedRedisServer.o: src/OptimizedRedisServer.cpp.o
-
-.PHONY : src/OptimizedRedisServer.o
-
-# target to build an object file
-src/OptimizedRedisServer.cpp.o:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/OptimizedRedisServer.cpp.o
-.PHONY : src/OptimizedRedisServer.cpp.o
-
-src/OptimizedRedisServer.i: src/OptimizedRedisServer.cpp.i
-
-.PHONY : src/OptimizedRedisServer.i
-
-# target to preprocess a source file
-src/OptimizedRedisServer.cpp.i:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/OptimizedRedisServer.cpp.i
-.PHONY : src/OptimizedRedisServer.cpp.i
-
-src/OptimizedRedisServer.s: src/OptimizedRedisServer.cpp.s
-
-.PHONY : src/OptimizedRedisServer.s
-
-# target to generate assembly for a file
-src/OptimizedRedisServer.cpp.s:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/OptimizedRedisServer.cpp.s
-.PHONY : src/OptimizedRedisServer.cpp.s
 
 src/RESPParser.o: src/RESPParser.cpp.o
 
@@ -313,7 +237,6 @@ src/RESPParser.o: src/RESPParser.cpp.o
 
 # target to build an object file
 src/RESPParser.cpp.o:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/RESPParser.cpp.o
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RESPParser.cpp.o
 .PHONY : src/RESPParser.cpp.o
 
@@ -323,7 +246,6 @@ src/RESPParser.i: src/RESPParser.cpp.i
 
 # target to preprocess a source file
 src/RESPParser.cpp.i:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/RESPParser.cpp.i
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RESPParser.cpp.i
 .PHONY : src/RESPParser.cpp.i
 
@@ -333,7 +255,6 @@ src/RESPParser.s: src/RESPParser.cpp.s
 
 # target to generate assembly for a file
 src/RESPParser.cpp.s:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/RESPParser.cpp.s
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RESPParser.cpp.s
 .PHONY : src/RESPParser.cpp.s
 
@@ -364,33 +285,6 @@ src/RedisServer.cpp.s:
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/RedisServer.cpp.s
 .PHONY : src/RedisServer.cpp.s
 
-src/SimpleConfig.o: src/SimpleConfig.cpp.o
-
-.PHONY : src/SimpleConfig.o
-
-# target to build an object file
-src/SimpleConfig.cpp.o:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/SimpleConfig.cpp.o
-.PHONY : src/SimpleConfig.cpp.o
-
-src/SimpleConfig.i: src/SimpleConfig.cpp.i
-
-.PHONY : src/SimpleConfig.i
-
-# target to preprocess a source file
-src/SimpleConfig.cpp.i:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/SimpleConfig.cpp.i
-.PHONY : src/SimpleConfig.cpp.i
-
-src/SimpleConfig.s: src/SimpleConfig.cpp.s
-
-.PHONY : src/SimpleConfig.s
-
-# target to generate assembly for a file
-src/SimpleConfig.cpp.s:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/SimpleConfig.cpp.s
-.PHONY : src/SimpleConfig.cpp.s
-
 src/ThreadPool.o: src/ThreadPool.cpp.o
 
 .PHONY : src/ThreadPool.o
@@ -417,33 +311,6 @@ src/ThreadPool.s: src/ThreadPool.cpp.s
 src/ThreadPool.cpp.s:
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/ThreadPool.cpp.s
 .PHONY : src/ThreadPool.cpp.s
-
-src/WorkerThreadPool.o: src/WorkerThreadPool.cpp.o
-
-.PHONY : src/WorkerThreadPool.o
-
-# target to build an object file
-src/WorkerThreadPool.cpp.o:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/WorkerThreadPool.cpp.o
-.PHONY : src/WorkerThreadPool.cpp.o
-
-src/WorkerThreadPool.i: src/WorkerThreadPool.cpp.i
-
-.PHONY : src/WorkerThreadPool.i
-
-# target to preprocess a source file
-src/WorkerThreadPool.cpp.i:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/WorkerThreadPool.cpp.i
-.PHONY : src/WorkerThreadPool.cpp.i
-
-src/WorkerThreadPool.s: src/WorkerThreadPool.cpp.s
-
-.PHONY : src/WorkerThreadPool.s
-
-# target to generate assembly for a file
-src/WorkerThreadPool.cpp.s:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/WorkerThreadPool.cpp.s
-.PHONY : src/WorkerThreadPool.cpp.s
 
 src/main.o: src/main.cpp.o
 
@@ -472,33 +339,6 @@ src/main.cpp.s:
 	$(MAKE) -f CMakeFiles/simple_redis.dir/build.make CMakeFiles/simple_redis.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
-src/main_optimized.o: src/main_optimized.cpp.o
-
-.PHONY : src/main_optimized.o
-
-# target to build an object file
-src/main_optimized.cpp.o:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/main_optimized.cpp.o
-.PHONY : src/main_optimized.cpp.o
-
-src/main_optimized.i: src/main_optimized.cpp.i
-
-.PHONY : src/main_optimized.i
-
-# target to preprocess a source file
-src/main_optimized.cpp.i:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/main_optimized.cpp.i
-.PHONY : src/main_optimized.cpp.i
-
-src/main_optimized.s: src/main_optimized.cpp.s
-
-.PHONY : src/main_optimized.s
-
-# target to generate assembly for a file
-src/main_optimized.cpp.s:
-	$(MAKE) -f CMakeFiles/simple_redis_optimized.dir/build.make CMakeFiles/simple_redis_optimized.dir/src/main_optimized.cpp.s
-.PHONY : src/main_optimized.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -507,7 +347,6 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... simple_redis_optimized"
 	@echo "... simple_redis"
 	@echo "... src/AdaptiveCache.o"
 	@echo "... src/AdaptiveCache.i"
@@ -518,36 +357,21 @@ help:
 	@echo "... src/Config.o"
 	@echo "... src/Config.i"
 	@echo "... src/Config.s"
-	@echo "... src/ConfigLoader.o"
-	@echo "... src/ConfigLoader.i"
-	@echo "... src/ConfigLoader.s"
 	@echo "... src/DataStore.o"
 	@echo "... src/DataStore.i"
 	@echo "... src/DataStore.s"
-	@echo "... src/OptimizedRedisServer.o"
-	@echo "... src/OptimizedRedisServer.i"
-	@echo "... src/OptimizedRedisServer.s"
 	@echo "... src/RESPParser.o"
 	@echo "... src/RESPParser.i"
 	@echo "... src/RESPParser.s"
 	@echo "... src/RedisServer.o"
 	@echo "... src/RedisServer.i"
 	@echo "... src/RedisServer.s"
-	@echo "... src/SimpleConfig.o"
-	@echo "... src/SimpleConfig.i"
-	@echo "... src/SimpleConfig.s"
 	@echo "... src/ThreadPool.o"
 	@echo "... src/ThreadPool.i"
 	@echo "... src/ThreadPool.s"
-	@echo "... src/WorkerThreadPool.o"
-	@echo "... src/WorkerThreadPool.i"
-	@echo "... src/WorkerThreadPool.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
-	@echo "... src/main_optimized.o"
-	@echo "... src/main_optimized.i"
-	@echo "... src/main_optimized.s"
 .PHONY : help
 
 

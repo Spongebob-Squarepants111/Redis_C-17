@@ -9,39 +9,20 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include
 )
 
-# 源文件列表
-file(GLOB SRCS src/*.cpp)
-
-# 明确列出源文件以避免文件更新问题
-set(EXPLICIT_SRCS
+# 源文件列表 - 只保留优化版本
+set(SRCS
     src/AdaptiveCache.cpp
     src/CommandHandler.cpp
-    src/Config.cpp
-    src/ConfigLoader.cpp
     src/DataStore.cpp
-    src/main.cpp
-    src/RedisServer.cpp
     src/RESPParser.cpp
     src/ThreadPool.cpp
+    src/RedisServer.cpp
+    src/Config.cpp
+    src/main.cpp
 )
 
-# 优化版源文件
-set(OPTIMIZED_SRCS
-    src/AdaptiveCache.cpp
-    src/CommandHandler.cpp
-    src/DataStore.cpp
-    src/RESPParser.cpp
-    src/WorkerThreadPool.cpp
-    src/OptimizedRedisServer.cpp
-    src/SimpleConfig.cpp
-    src/main_optimized.cpp
-)
-
-# 生成可执行文件
-add_executable(simple_redis ${EXPLICIT_SRCS})
-
-# 生成优化版可执行文件
-add_executable(simple_redis_optimized ${OPTIMIZED_SRCS})
+# 生成可执行文件（重命名为 simple_redis）
+add_executable(simple_redis ${SRCS})
 
 # 优化选项
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -DNDEBUG")
@@ -52,7 +33,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-# 拷贝配置文件（如 config.ini）到构建目录
+# 拷贝配置文件到构建目录
 configure_file(
   ${CMAKE_SOURCE_DIR}/config.ini
   ${CMAKE_BINARY_DIR}/config.ini
@@ -73,22 +54,8 @@ target_link_libraries(simple_redis
     Threads::Threads
 )
 
-# 为优化版链接依赖库
-target_link_libraries(simple_redis_optimized
-    PRIVATE
-    ${ZLIB_LIBRARIES}
-    xxhash
-    Threads::Threads
-)
-
 # 包含头文件目录
 target_include_directories(simple_redis
-    PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-)
-
-# 为优化版添加头文件目录
-target_include_directories(simple_redis_optimized
     PRIVATE
     ${PROJECT_SOURCE_DIR}/include
 )
