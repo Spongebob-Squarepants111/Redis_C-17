@@ -57,8 +57,7 @@ void AdaptiveCache::put(const std::string& key, const std::string& value) {
             policy_->on_access(key, *it->second);
             
             // 根据策略移动项到合适的位置
-            if (policy_->type() == CachePolicy::Type::LRU || 
-                policy_->type() == CachePolicy::Type::TLRU) {
+            if (policy_->type() == CachePolicy::Type::LRU) {
                 // 对于LRU，移到列表前端
                 shard.items.splice(shard.items.begin(), shard.items, it->second);
             }
@@ -124,8 +123,7 @@ std::optional<std::string> AdaptiveCache::get(const std::string& key) {
     }
     
     // 对于LRU策略，移动到列表前端
-    if (policy_->type() == CachePolicy::Type::LRU || 
-        policy_->type() == CachePolicy::Type::TLRU) {
+    if (policy_->type() == CachePolicy::Type::LRU) {
         // 需要转换为写锁
         lock.unlock();
         std::unique_lock<std::shared_mutex> write_lock(shard.mutex);
