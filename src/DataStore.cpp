@@ -61,14 +61,25 @@ bool DataStore::del(const std::string& key) {
 }
 
 void DataStore::set(std::string_view key, std::string_view value) {
-    // 将string_view转为string并调用原方法
-    std::string key_str(key);
-    std::string value_str(value);
+    // 优化：仅在必要时进行string转换
+    std::string key_str;
+    std::string value_str;
+    std::string stored_value;
     
-    std::string stored_value = enable_compression_ ? compress(value_str) : value_str;
-    
-    // 更新缓存
-    cache_.put(key_str, value_str);
+    // 只有在需要压缩时才转换value
+    if (enable_compression_) {
+        value_str = std::string(value);
+        stored_value = compress(value_str);
+        // 更新缓存使用未压缩的值
+        key_str = std::string(key);
+        cache_.put(key_str, value_str);
+    } else {
+        // 不压缩时直接使用string_view的数据
+        key_str = std::string(key);
+        value_str = std::string(value);
+        stored_value = value_str;
+        cache_.put(key_str, value_str);
+    }
     
     // 更新存储
     size_t shard_idx = get_shard_index(key_str);

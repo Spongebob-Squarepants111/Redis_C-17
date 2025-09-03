@@ -142,8 +142,10 @@ void WorkerThread::process_client_data(int client_fd) {
     
     auto& client = **client_ptr;
     
-    // 读取数据
-    char buffer[4096];
+    // 使用更大的缓冲区来处理pipeline请求
+    constexpr size_t BUFFER_SIZE = 64 * 1024; // 64KB缓冲区
+    char buffer[BUFFER_SIZE];
+    
     while (true) {
         ssize_t n = recv(client_fd, buffer, sizeof(buffer), 0);
         if (n < 0) {
@@ -160,13 +162,26 @@ void WorkerThread::process_client_data(int client_fd) {
         std::string_view data(buffer, n);
         auto commands = client.parser.parse(data);
         
-        // 处理命令
-        for (const auto& cmd : commands) {
-            if (!cmd.empty()) {
-                std::string response = handler_->handle(cmd);
-                send_response(client_fd, response);
-                processed_commands_++;
+        // 处理命令（针对管道模式优化）
+        if (!commands.empty()) {
+            // 预分配响应缓冲区以减少重分配
+            std::string batch_response;
+            batch_response.reserve(commands.size() * 64); // 预估每个响应64字节
+            
+            size_t valid_count = 0;
+            
+            for (const auto& cmd : commands) {
+                if (!cmd.empty()) {
+                    std::string response = handler_->handle(cmd);
+                    batch_response += response;
+                    valid_count++;
+                }
             }
+            
+            if (!batch_response.empty()) {
+                send_response(client_fd, batch_response);
+            }
+            processed_commands_ += valid_count;
         }
         
         client.last_active = std::chrono::steady_clock::now();
@@ -174,9 +189,28 @@ void WorkerThread::process_client_data(int client_fd) {
 }
 
 void WorkerThread::send_response(int client_fd, const std::string& response) {
-    ssize_t sent = send(client_fd, response.data(), response.size(), MSG_NOSIGNAL);
-    if (sent < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
-        remove_client(client_fd);
+    size_t total_sent = 0;
+    size_t total_size = response.size();
+    const char* data = response.data();
+    
+    while (total_sent < total_size) {
+        ssize_t sent = send(client_fd, data + total_sent, total_size - total_sent, MSG_NOSIGNAL);
+        if (sent < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                // 对于非阻塞socket，这是正常的，应该稍后重试
+                // 但为了简化，我们这里继续尝试
+                continue;
+            } else {
+                // 真正的错误
+                remove_client(client_fd);
+                return;
+            }
+        } else if (sent == 0) {
+            // 连接关闭
+            remove_client(client_fd);
+            return;
+        }
+        total_sent += sent;
     }
 }
 

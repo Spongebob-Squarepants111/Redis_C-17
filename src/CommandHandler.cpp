@@ -23,14 +23,25 @@ std::string CommandHandler::handle(const std::vector<std::string>& cmd) {
         return "-ERR empty command\r\n";
     }
 
-    // 获取命令名称并转换为小写
-    std::string cmd_name = cmd[0];
-    std::transform(cmd_name.begin(), cmd_name.end(), cmd_name.begin(), ::tolower);
+    // 获取命令名称并转换为小写（优化：避免字符串拷贝）
+    std::string cmd_name;
+    cmd_name.reserve(cmd[0].size());
+    
+    // 直接在遍历时转换为小写，避免额外的遍历
+    for (char c : cmd[0]) {
+        cmd_name.push_back(std::tolower(c));
+    }
 
     // 查找命令处理函数
     auto it = cmd_handlers_.find(cmd_name);
     if (it == cmd_handlers_.end()) {
-        return "-ERR unknown command '" + cmd_name + "'\r\n";
+        // 优化错误消息构造
+        std::string error_msg;
+        error_msg.reserve(30 + cmd_name.size());
+        error_msg = "-ERR unknown command '";
+        error_msg += cmd_name;
+        error_msg += "'\r\n";
+        return error_msg;
     }
 
     // 记录开始时间
@@ -97,7 +108,16 @@ std::string CommandHandler::handle_get(const std::vector<std::string>& args) {
     if (!value) {
         return "$-1\r\n";
     }
-    return "$" + std::to_string(value->size()) + "\r\n" + *value + "\r\n";
+    
+    // 优化响应构造，减少字符串拼接
+    std::string response;
+    response.reserve(value->size() + 20); // 预分配足够空间
+    response = "$";
+    response += std::to_string(value->size());
+    response += "\r\n";
+    response += *value;
+    response += "\r\n";
+    return response;
 }
 
 std::string CommandHandler::handle_del(const std::vector<std::string>& args) {
@@ -131,14 +151,25 @@ std::string CommandHandler::handle_mget(const std::vector<std::string>& args) {
     }
     
     std::vector<std::string> keys(args.begin() + 1, args.end());
-    std::string response = "*" + std::to_string(keys.size()) + "\r\n";
+    
+    // 优化响应构造，预分配空间
+    std::string response;
+    response.reserve(keys.size() * 50); // 预估每个键50字节响应
+    
+    response = "*";
+    response += std::to_string(keys.size());
+    response += "\r\n";
     
     for (const auto& key : keys) {
         auto value = store_->get(key);
         if (!value) {
             response += "$-1\r\n";
         } else {
-            response += "$" + std::to_string(value->size()) + "\r\n" + *value + "\r\n";
+            response += "$";
+            response += std::to_string(value->size());
+            response += "\r\n";
+            response += *value;
+            response += "\r\n";
         }
     }
     

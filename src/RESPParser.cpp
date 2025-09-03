@@ -10,9 +10,11 @@ std::vector<std::string> RESPParser::RESPValue::to_command() const {
     }
     
     std::vector<std::string> result;
+    result.reserve(array.size()); // 预分配空间
+    
     for (const auto& element : array) {
         if (element->type == Type::BulkString) {
-            result.push_back(std::string(element->value));
+            result.emplace_back(element->value);
         } else {
             // 命令的所有元素都必须是批量字符串
             return {};
@@ -77,6 +79,7 @@ bool RESPParser::has_complete_command() const {
 
 std::vector<std::vector<std::string>> RESPParser::get_commands() {
     std::vector<std::vector<std::string>> commands;
+    commands.reserve(context_.completed_values.size()); // 预分配空间
     
     while (!context_.completed_values.empty()) {
         auto value = std::move(context_.completed_values.front());
@@ -244,9 +247,41 @@ std::optional<std::unique_ptr<RESPParser::RESPValue>> RESPParser::parse_array(st
         return array;
     }
     
-    // 解析数组元素
+    // 预分配数组空间
+    array->array.reserve(count);
+    
+    // 解析数组元素，避免递归调用
     for (int i = 0; i < count; ++i) {
-        auto element = try_parse_next(data);
+        // 检查是否有足够的数据
+        if (pos >= data.size()) {
+            return std::nullopt;
+        }
+        
+        // 直接在这里解析元素，避免递归调用try_parse_next
+        char type = data[pos];
+        std::optional<std::unique_ptr<RESPValue>> element;
+        
+        switch (type) {
+            case '+': // 简单字符串
+                element = parse_simple_string(data, pos);
+                break;
+            case '-': // 错误
+                element = parse_error(data, pos);
+                break;
+            case ':': // 整数
+                element = parse_integer(data, pos);
+                break;
+            case '$': // 批量字符串
+                element = parse_bulk_string(data, pos);
+                break;
+            case '*': // 嵌套数组（保留递归处理）
+                element = parse_array(data, pos);
+                break;
+            default:
+                // 不支持的类型
+                return std::nullopt;
+        }
+        
         if (!element) {
             // 数据不完整
             return std::nullopt;
