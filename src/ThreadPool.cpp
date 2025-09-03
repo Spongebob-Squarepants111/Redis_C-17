@@ -142,12 +142,23 @@ void WorkerThread::process_client_data(int client_fd) {
     
     auto& client = **client_ptr;
     
-    // 使用更大的缓冲区来处理pipeline请求
-    constexpr size_t BUFFER_SIZE = 64 * 1024; // 64KB缓冲区
-    char buffer[BUFFER_SIZE];
+    // 动态缓冲区：根据数据量调整大小
+    constexpr size_t INITIAL_BUFFER_SIZE = 8 * 1024;  // 8KB初始缓冲区
+    constexpr size_t MAX_BUFFER_SIZE = 64 * 1024;     // 64KB最大缓冲区
+    
+    // 使用客户端缓冲区，避免栈上大分配
+    if (client.read_buffer.size() < INITIAL_BUFFER_SIZE) {
+        client.read_buffer.resize(INITIAL_BUFFER_SIZE);
+    }
     
     while (true) {
-        ssize_t n = recv(client_fd, buffer, sizeof(buffer), 0);
+        // 确保缓冲区足够大，但不超过最大限制
+        size_t current_size = client.read_buffer.size();
+        if (current_size > MAX_BUFFER_SIZE) {
+            client.read_buffer.resize(MAX_BUFFER_SIZE);
+        }
+        
+        ssize_t n = recv(client_fd, client.read_buffer.data(), client.read_buffer.size(), 0);
         if (n < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) break;
             remove_client(client_fd);
@@ -159,7 +170,7 @@ void WorkerThread::process_client_data(int client_fd) {
         }
         
         // 解析命令
-        std::string_view data(buffer, n);
+        std::string_view data(client.read_buffer.data(), n);
         auto commands = client.parser.parse(data);
         
         // 处理命令（针对管道模式优化）
