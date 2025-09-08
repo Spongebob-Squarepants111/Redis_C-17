@@ -18,7 +18,7 @@
 					]
 				}
 			],
-			"name" : "Release",
+			"name" : "Debug",
 			"projects" : 
 			[
 				{
@@ -38,7 +38,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "simple_redis::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-simple_redis-Release-7a53419f8635c9638bf3.json",
+					"jsonFile" : "target-simple_redis-Debug-72f54f8d32ed90780a4f.json",
 					"name" : "simple_redis",
 					"projectIndex" : 0
 				}
