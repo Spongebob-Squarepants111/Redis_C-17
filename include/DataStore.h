@@ -67,34 +67,17 @@ public:
     void set(std::string_view key, std::string_view value);
     std::optional<std::string> get(std::string_view key);
     bool del(std::string_view key);
-    void multi_set(const std::vector<std::pair<std::string_view, std::string_view>>& kvs);
-    std::vector<std::optional<std::string>> multi_get(const std::vector<std::string_view>& keys);
-    size_t multi_del(const std::vector<std::string_view>& keys);
-    void prefetch(const std::vector<std::string_view>& keys);
+    
     
     // 保留原有的std::string接口以保持兼容性
     void set(const std::string& key, const std::string& value);
     std::optional<std::string> get(const std::string& key);
     bool del(const std::string& key);
-    void multi_set(const std::vector<std::pair<std::string, std::string>>& kvs);
-    std::vector<std::optional<std::string>> multi_get(const std::vector<std::string>& keys);
-    size_t multi_del(const std::vector<std::string>& keys);
-    void prefetch(const std::vector<std::string>& keys);
     
-    void flush(); // 强制持久化
     
-    // 缓存管理接口
-    void set_cache_policy(CachePolicy::Type policy_type);
-    CachePolicy::Type get_cache_policy() const;
-    std::string get_cache_policy_name() const;
-    void enable_adaptive_cache(bool enable);
-    bool is_adaptive_cache_enabled() const;
-    void set_cache_capacity(size_t capacity);
-    size_t get_cache_capacity() const;
-    double get_cache_hit_ratio() const;
-    AdaptiveCache::Stats get_cache_stats() const;
 
 private:
+    void flush();
     // 存储桶结构，每个桶有自己的锁
     struct alignas(CACHE_LINE_SIZE) Bucket {
         // 将map替换为多个子map，每个子map有自己的锁，进一步减少锁竞争

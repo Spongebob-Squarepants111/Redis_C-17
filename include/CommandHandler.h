@@ -13,11 +13,6 @@ public:
     // 单个命令处理
     std::string handle(const std::vector<std::string>& cmd);
     
-    // 批量命令处理
-    std::vector<std::string> handle_pipeline(const std::vector<std::vector<std::string>>& cmds);
-    
-    // 事务命令处理
-    std::vector<std::string> handle_transaction(const std::vector<std::vector<std::string>>& cmds);
 
 private:
     // 命令处理函数类型

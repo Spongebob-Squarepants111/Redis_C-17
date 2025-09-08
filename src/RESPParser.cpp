@@ -24,25 +24,7 @@ std::vector<std::string> RESPParser::RESPValue::to_command() const {
     return result;
 }
 
-// 静态方法，兼容旧接口
-std::vector<std::string> RESPParser::parse_command(const std::string& input) {
-    RESPParser parser;
-    auto commands = parser.parse(input);
-    if (commands.empty()) {
-        return {};
-    }
-    return commands[0];
-}
-
-std::vector<std::vector<std::string>> RESPParser::parse_multi(const std::string& input) {
-    RESPParser parser;
-    return parser.parse(input);
-}
-
 // 实例方法
-void RESPParser::reset() {
-    context_ = ParseContext{};
-}
 
 std::vector<std::vector<std::string>> RESPParser::parse(std::string_view data) {
     // 将新数据追加到缓冲区
@@ -71,10 +53,6 @@ std::vector<std::vector<std::string>> RESPParser::parse(std::string_view data) {
     
     // 返回所有完整的命令
     return get_commands();
-}
-
-bool RESPParser::has_complete_command() const {
-    return !context_.completed_values.empty();
 }
 
 std::vector<std::vector<std::string>> RESPParser::get_commands() {

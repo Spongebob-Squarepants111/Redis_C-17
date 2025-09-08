@@ -15,7 +15,7 @@ RedisServer::RedisServer(const Config& config)
     DataStore::Options ds_options;
     ds_options.shard_count = config.shard_count;
     ds_options.cache_size = config.cache_size_mb * 1000; // 转换为条目数
-    ds_options.enable_compression = false;
+    ds_options.enable_compression = config.enable_compression;
     ds_options.persist_path = "./data/";
     ds_options.sync_interval = std::chrono::seconds(config.sync_interval_sec);
     ds_options.memory_pool_block_size = 4096;

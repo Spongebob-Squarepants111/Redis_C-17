@@ -58,30 +58,7 @@ std::string CommandHandler::handle(const std::vector<std::string>& cmd) {
     return result;
 }
 
-std::vector<std::string> CommandHandler::handle_pipeline(const std::vector<std::vector<std::string>>& cmds) {
-    std::vector<std::string> results;
-    results.reserve(cmds.size());
-
-    for (const auto& cmd : cmds) {
-        results.push_back(handle(cmd));
-    }
-
-    return results;
-}
-
-std::vector<std::string> CommandHandler::handle_transaction(const std::vector<std::vector<std::string>>& cmds) {
-    // 事务处理
-    std::vector<std::string> results;
-    results.reserve(cmds.size());
-
-    // TODO: 实现事务的原子性，可以添加MULTI/EXEC/DISCARD等命令支持
-
-    for (const auto& cmd : cmds) {
-        results.push_back(handle(cmd));
-    }
-
-    return results;
-}
+// 移除未使用的 handle_pipeline / handle_transaction
 
 void CommandHandler::update_command_stats(const std::string& cmd_name, uint64_t execution_time) {
     auto& stats = cmd_stats_[cmd_name];

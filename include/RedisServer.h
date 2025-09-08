@@ -18,6 +18,7 @@ public:
         size_t max_connections = 10000;
         size_t buffer_size = 32768;
         size_t cache_size_mb = 200;
+        bool enable_compression = false;
         bool enable_persistence = true;
         int sync_interval_sec = 300;
     };

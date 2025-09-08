@@ -64,6 +64,7 @@ RedisServer::Config Config::load_from_file(const std::string& filename) {
         }
         else if (section == "storage") {
             if (key == "cache_size_mb") config.cache_size_mb = parse_size_t(value, config.cache_size_mb);
+            else if (key == "enable_compression") config.enable_compression = parse_bool(value, config.enable_compression);
             else if (key == "enable_persistence") config.enable_persistence = parse_bool(value, config.enable_persistence);
             else if (key == "sync_interval_sec") config.sync_interval_sec = parse_int(value, config.sync_interval_sec);
         }

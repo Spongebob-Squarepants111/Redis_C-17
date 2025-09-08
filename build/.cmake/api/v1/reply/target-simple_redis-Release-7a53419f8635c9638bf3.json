@@ -25,7 +25,7 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 25,
+				"line" : 26,
 				"parent" : 0
 			},
 			{
@@ -42,7 +42,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g -O0 -DDEBUG -flto -fno-fat-lto-objects  "
+					"fragment" : "-O3 -march=native -flto -DNDEBUG -fno-rtti -flto -fno-fat-lto-objects  "
 				},
 				{
 					"fragment" : "-std=c++17"
@@ -65,7 +65,8 @@
 				4,
 				5,
 				6,
-				7
+				7,
+				8
 			]
 		}
 	],
@@ -75,7 +76,7 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "-g -O0 -DDEBUG -flto -fno-fat-lto-objects",
+				"fragment" : "-O3 -march=native -flto -DNDEBUG -fno-rtti -flto -fno-fat-lto-objects",
 				"role" : "flags"
 			},
 			{
@@ -118,7 +119,8 @@
 				4,
 				5,
 				6,
-				7
+				7,
+				8
 			]
 		}
 	],
@@ -164,6 +166,12 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/Config.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/MemoryPool.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{

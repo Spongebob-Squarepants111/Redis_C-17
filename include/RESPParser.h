@@ -32,22 +32,12 @@ public:
     // 构造函数
     RESPParser() = default;
     
-    // 重置解析状态
-    void reset();
-    
     // 增量解析，处理部分数据
     // 返回解析出的完整命令列表，未完成的保持在内部状态中
     std::vector<std::vector<std::string>> parse(std::string_view data);
     
-    // 检查是否有完整的命令可用
-    bool has_complete_command() const;
-    
     // 获取并清除当前已解析的所有命令
     std::vector<std::vector<std::string>> get_commands();
-    
-    // 为了兼容旧代码的静态接口
-    static std::vector<std::string> parse_command(const std::string& input);
-    static std::vector<std::vector<std::string>> parse_multi(const std::string& input);
 
 private:
     // 解析状态

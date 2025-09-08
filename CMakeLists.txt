@@ -18,6 +18,7 @@ set(SRCS
     src/ThreadPool.cpp
     src/RedisServer.cpp
     src/Config.cpp
+    src/MemoryPool.cpp
     src/main.cpp
 )
 
